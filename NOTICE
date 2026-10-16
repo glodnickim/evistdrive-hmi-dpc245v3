@@ -1,0 +1,5 @@
+EVistDrive HMI third-party notices
+
+Inter font: Copyright (c) 2016 The Inter Project Authors. Licensed under the SIL Open Font License 1.1. The full license is in tools/fonts/Inter-OFL-LICENSE.txt.
+
+The bitmap font data in include/ui_font1_*_data.h is generated from the bundled Inter font (tools/fonts/InterDisplay-Bold.ttf) and remains under the SIL Open Font License 1.1.

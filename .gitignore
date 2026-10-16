@@ -1,0 +1,10 @@
+build/
+dist/
+sim/out/
+*.bin
+*.elf
+*.map
+private/
+.tmp/
+__pycache__/
+*.pyc
