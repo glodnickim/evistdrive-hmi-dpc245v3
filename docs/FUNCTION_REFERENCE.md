@@ -2,7 +2,7 @@
 
 This file is generated from the current source tree and is part of the release gate. Every C function definition, including static helpers, interrupt handlers and freestanding runtime functions, is listed here.
 
-- Function definitions: **722**
+- Function definitions: **726**
 - Source files: **53**
 
 ## `platform/dpc245/bxcan_raw.c`
@@ -3576,11 +3576,11 @@ Functions: **28**
 - Type: `size_t (uint8_t *, size_t, const dpc245_app_t *, const evist_can_router_t *, _Bool)`
 - Responsibility: Frame or record construction in the dpc245_ble_app module.
 - Direct callers: `main`
-- Direct callees: `dpc245_ble_frame_build`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_runtime_calories_kcal`, `dpc245_unit`, `put_u16le`, `put_u32le`, `zero_bytes`
+- Direct callees: `dpc245_ble_frame_build`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_runtime_calories_kcal`, `dpc245_runtime_pedal_avg`, `dpc245_unit`, `put_u16le`, `put_u32le`, `zero_bytes`
 
 ### `dpc245_ble_app_take_hmi_event_bits`
 
-- Location: `src/dpc245_ble_app.c:636`
+- Location: `src/dpc245_ble_app.c:642`
 - Linkage: `global`
 - Type: `uint8_t (dpc245_ble_app_t *)`
 - Responsibility: Consume-once accessor in the dpc245_ble_app module.
@@ -4149,7 +4149,7 @@ Functions: **7**
 
 Ride statistics, service counters and telemetry-derived runtime state.
 
-Functions: **10**
+Functions: **14**
 
 ### `add_u32`
 
@@ -4160,18 +4160,36 @@ Functions: **10**
 - Direct callers: `dpc245_runtime_on_can`, `dpc245_runtime_tick_500ms`
 - Direct callees: `dpc245_get_u32_le`, `dpc245_set_u32_le`
 
-### `dpc245_runtime_init`
+### `pedal_window_clear`
 
 - Location: `src/dpc245_runtime.c:12`
+- Linkage: `static`
+- Type: `void (dpc245_runtime_t *)`
+- Responsibility: Internal helper of the dpc245_runtime module.
+- Direct callers: `dpc245_runtime_init`, `dpc245_runtime_on_can`, `dpc245_runtime_pedal_poll`, `dpc245_runtime_trip_reset`
+- Direct callees: —
+
+### `pedal_window_push`
+
+- Location: `src/dpc245_runtime.c:20`
+- Linkage: `static`
+- Type: `void (dpc245_runtime_t *, uint16_t)`
+- Responsibility: Internal helper of the dpc245_runtime module.
+- Direct callers: `dpc245_runtime_on_can`
+- Direct callees: —
+
+### `dpc245_runtime_init`
+
+- Location: `src/dpc245_runtime.c:35`
 - Linkage: `global`
 - Type: `void (dpc245_runtime_t *, const dpc245_settings_t *)`
 - Responsibility: Initialization in the dpc245_runtime module.
 - Direct callers: `dpc245_app_init`
-- Direct callees: `dpc245_settings_defaults`, `update_service_due`
+- Direct callees: `dpc245_settings_defaults`, `pedal_window_clear`, `update_service_due`
 
 ### `update_service_due`
 
-- Location: `src/dpc245_runtime.c:28`
+- Location: `src/dpc245_runtime.c:56`
 - Linkage: `static`
 - Type: `void (dpc245_runtime_t *)`
 - Responsibility: Internal helper of the dpc245_runtime module.
@@ -4180,16 +4198,16 @@ Functions: **10**
 
 ### `dpc245_runtime_on_can`
 
-- Location: `src/dpc245_runtime.c:37`
+- Location: `src/dpc245_runtime.c:65`
 - Linkage: `global`
 - Type: `bool (dpc245_runtime_t *, const bafang_can_frame_t *)`
 - Responsibility: CAN frame handler in the dpc245_runtime module.
 - Direct callers: `main`
-- Direct callees: `add_u32`, `bafang_can_id_decode`, `dpc245_error_push`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_set_u16_le`, `update_service_due`
+- Direct callees: `add_u32`, `bafang_can_id_decode`, `dpc245_error_push`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_set_u16_le`, `pedal_window_clear`, `pedal_window_push`, `update_service_due`
 
 ### `dpc245_runtime_service_due`
 
-- Location: `src/dpc245_runtime.c:133`
+- Location: `src/dpc245_runtime.c:175`
 - Linkage: `global`
 - Type: `bool (const dpc245_runtime_t *)`
 - Responsibility: Public function of the dpc245_runtime module.
@@ -4198,7 +4216,7 @@ Functions: **10**
 
 ### `dpc245_runtime_service_tip_active`
 
-- Location: `src/dpc245_runtime.c:137`
+- Location: `src/dpc245_runtime.c:179`
 - Linkage: `global`
 - Type: `bool (const dpc245_runtime_t *)`
 - Responsibility: Public function of the dpc245_runtime module.
@@ -4207,16 +4225,34 @@ Functions: **10**
 
 ### `dpc245_runtime_trip_reset`
 
-- Location: `src/dpc245_runtime.c:141`
+- Location: `src/dpc245_runtime.c:183`
 - Linkage: `global`
 - Type: `void (dpc245_runtime_t *)`
 - Responsibility: Public function of the dpc245_runtime module.
 - Direct callers: `dpc245_app_key`
-- Direct callees: `dpc245_set_u16_le`, `dpc245_set_u32_le`
+- Direct callees: `dpc245_set_u16_le`, `dpc245_set_u32_le`, `pedal_window_clear`
+
+### `dpc245_runtime_pedal_avg`
+
+- Location: `src/dpc245_runtime.c:197`
+- Linkage: `global`
+- Type: `bool (const dpc245_runtime_t *, uint16_t *)`
+- Responsibility: Public function of the dpc245_runtime module.
+- Direct callers: `dpc245_ble_app_build_periodic`, `draw_adv_diag`, `ui_dashboard_lower_pair_text`
+- Direct callees: —
+
+### `dpc245_runtime_pedal_poll`
+
+- Location: `src/dpc245_runtime.c:203`
+- Linkage: `global`
+- Type: `void (dpc245_runtime_t *, uint32_t)`
+- Responsibility: Public function of the dpc245_runtime module.
+- Direct callers: —
+- Direct callees: `pedal_window_clear`
 
 ### `dpc245_runtime_tick_500ms`
 
-- Location: `src/dpc245_runtime.c:153`
+- Location: `src/dpc245_runtime.c:212`
 - Linkage: `global`
 - Type: `void (dpc245_runtime_t *, bool)`
 - Responsibility: Periodic step in the dpc245_runtime module.
@@ -4225,7 +4261,7 @@ Functions: **10**
 
 ### `dpc245_runtime_hmi_stats`
 
-- Location: `src/dpc245_runtime.c:161`
+- Location: `src/dpc245_runtime.c:220`
 - Linkage: `global`
 - Type: `void (const dpc245_runtime_t *, dpc245_v3_hmi_stats_raw_t *)`
 - Responsibility: Public function of the dpc245_runtime module.
@@ -4234,7 +4270,7 @@ Functions: **10**
 
 ### `dpc245_runtime_calories_kcal`
 
-- Location: `src/dpc245_runtime.c:176`
+- Location: `src/dpc245_runtime.c:235`
 - Linkage: `global`
 - Type: `uint32_t (const dpc245_runtime_t *)`
 - Responsibility: Public function of the dpc245_runtime module.
@@ -6039,11 +6075,11 @@ Functions: **107**
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *, uint8_t, uint32_t, char *, char *, const char **, const char **, const char **, const char **)`
 - Responsibility: Public function of the ui_dashboard module.
 - Direct callers: `draw_lower_panel`, `theme_pair`
-- Direct callees: `bafang_power_w`, `dash_speed_unit`, `display_metric`, `distance_unit`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_runtime_calories_kcal`, `fmt_u32_5`, `fmt_x100_5`, `selected_motor`, `temperature_value`
+- Direct callees: `bafang_power_w`, `dash_speed_unit`, `display_metric`, `distance_unit`, `dpc245_get_u16_le`, `dpc245_get_u32_le`, `dpc245_runtime_calories_kcal`, `dpc245_runtime_pedal_avg`, `fmt_u32_5`, `fmt_x100_5`, `selected_motor`, `temperature_value`
 
 ### `soc_style`
 
-- Location: `src/ui_dashboard.c:272`
+- Location: `src/ui_dashboard.c:276`
 - Linkage: `static`
 - Type: `soc_style_t (uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6052,7 +6088,7 @@ Functions: **107**
 
 ### `soc_blink_on`
 
-- Location: `src/ui_dashboard.c:277`
+- Location: `src/ui_dashboard.c:281`
 - Linkage: `static`
 - Type: `bool (soc_style_t, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6061,7 +6097,7 @@ Functions: **107**
 
 ### `round_inset`
 
-- Location: `src/ui_dashboard.c:278`
+- Location: `src/ui_dashboard.c:282`
 - Linkage: `static`
 - Type: `uint8_t (uint8_t, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6070,7 +6106,7 @@ Functions: **107**
 
 ### `round_rect`
 
-- Location: `src/ui_dashboard.c:288`
+- Location: `src/ui_dashboard.c:292`
 - Linkage: `static`
 - Type: `void (uint16_t, uint16_t, uint16_t, uint16_t, uint8_t, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6079,7 +6115,7 @@ Functions: **107**
 
 ### `badge_glyph`
 
-- Location: `src/ui_dashboard.c:296`
+- Location: `src/ui_dashboard.c:300`
 - Linkage: `static`
 - Type: `const ui_font1_glyph_t *(const ui_font1_t *, char)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6088,7 +6124,7 @@ Functions: **107**
 
 ### `badge_ink_left`
 
-- Location: `src/ui_dashboard.c:301`
+- Location: `src/ui_dashboard.c:305`
 - Linkage: `static`
 - Type: `uint16_t (const ui_font1_t *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6097,7 +6133,7 @@ Functions: **107**
 
 ### `badge_ink_top`
 
-- Location: `src/ui_dashboard.c:314`
+- Location: `src/ui_dashboard.c:318`
 - Linkage: `static`
 - Type: `int (const ui_font1_t *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6106,7 +6142,7 @@ Functions: **107**
 
 ### `draw_battery_bar`
 
-- Location: `src/ui_dashboard.c:330`
+- Location: `src/ui_dashboard.c:334`
 - Linkage: `static`
 - Type: `void (const bafang_telemetry_t *, bool, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6115,7 +6151,7 @@ Functions: **107**
 
 ### `draw_battery_widget`
 
-- Location: `src/ui_dashboard.c:350`
+- Location: `src/ui_dashboard.c:354`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6124,7 +6160,7 @@ Functions: **107**
 
 ### `draw_power_graph`
 
-- Location: `src/ui_dashboard.c:394`
+- Location: `src/ui_dashboard.c:398`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6133,7 +6169,7 @@ Functions: **107**
 
 ### `draw_status_glyph`
 
-- Location: `src/ui_dashboard.c:418`
+- Location: `src/ui_dashboard.c:422`
 - Linkage: `static`
 - Type: `void (uint16_t, uint16_t, const uint32_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6142,7 +6178,7 @@ Functions: **107**
 
 ### `draw_status_icons`
 
-- Location: `src/ui_dashboard.c:429`
+- Location: `src/ui_dashboard.c:433`
 - Linkage: `static`
 - Type: `void (const dpc245_ui_status_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6151,7 +6187,7 @@ Functions: **107**
 
 ### `draw_lower_panel`
 
-- Location: `src/ui_dashboard.c:437`
+- Location: `src/ui_dashboard.c:441`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *, bool, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6160,7 +6196,7 @@ Functions: **107**
 
 ### `draw_mode_badge`
 
-- Location: `src/ui_dashboard.c:446`
+- Location: `src/ui_dashboard.c:450`
 - Linkage: `static`
 - Type: `void (uint8_t, bool, bool, uint16_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6169,7 +6205,7 @@ Functions: **107**
 
 ### `speed_glyph`
 
-- Location: `src/ui_dashboard.c:489`
+- Location: `src/ui_dashboard.c:493`
 - Linkage: `static`
 - Type: `const ui_font1_glyph_t *(const ui_font1_t *, char)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6178,7 +6214,7 @@ Functions: **107**
 
 ### `draw_speed_digit`
 
-- Location: `src/ui_dashboard.c:493`
+- Location: `src/ui_dashboard.c:497`
 - Linkage: `static`
 - Type: `void (const ui_font1_t *, char, uint16_t, uint16_t, uint16_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6187,7 +6223,7 @@ Functions: **107**
 
 ### `draw_speed`
 
-- Location: `src/ui_dashboard.c:502`
+- Location: `src/ui_dashboard.c:506`
 - Linkage: `static`
 - Type: `void (uint32_t, uint16_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6196,7 +6232,7 @@ Functions: **107**
 
 ### `draw_dashboard`
 
-- Location: `src/ui_dashboard.c:521`
+- Location: `src/ui_dashboard.c:525`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_ui_status_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6205,7 +6241,7 @@ Functions: **107**
 
 ### `theme_clear_regions`
 
-- Location: `src/ui_dashboard.c:566`
+- Location: `src/ui_dashboard.c:570`
 - Linkage: `static`
 - Type: `void (const theme_region_t *, size_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6214,7 +6250,7 @@ Functions: **107**
 
 ### `power_zone_pct`
 
-- Location: `src/ui_dashboard.c:570`
+- Location: `src/ui_dashboard.c:574`
 - Linkage: `static`
 - Type: `uint16_t (uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6223,7 +6259,7 @@ Functions: **107**
 
 ### `power_pct`
 
-- Location: `src/ui_dashboard.c:576`
+- Location: `src/ui_dashboard.c:580`
 - Linkage: `static`
 - Type: `uint8_t (const dpc245_app_t *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6232,7 +6268,7 @@ Functions: **107**
 
 ### `theme_mode_colour`
 
-- Location: `src/ui_dashboard.c:581`
+- Location: `src/ui_dashboard.c:585`
 - Linkage: `static`
 - Type: `uint16_t (const dpc245_app_t *, const bafang_telemetry_t *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6241,7 +6277,7 @@ Functions: **107**
 
 ### `theme_mode_name`
 
-- Location: `src/ui_dashboard.c:585`
+- Location: `src/ui_dashboard.c:589`
 - Linkage: `static`
 - Type: `const char *(const dpc245_app_t *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6250,7 +6286,7 @@ Functions: **107**
 
 ### `theme_mode_letter`
 
-- Location: `src/ui_dashboard.c:590`
+- Location: `src/ui_dashboard.c:594`
 - Linkage: `static`
 - Type: `char (const dpc245_app_t *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6259,7 +6295,7 @@ Functions: **107**
 
 ### `theme_speed_cell`
 
-- Location: `src/ui_dashboard.c:595`
+- Location: `src/ui_dashboard.c:599`
 - Linkage: `static`
 - Type: `void (const ui_font1_t *, char, uint16_t, uint16_t, int, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6268,7 +6304,7 @@ Functions: **107**
 
 ### `theme_speed`
 
-- Location: `src/ui_dashboard.c:602`
+- Location: `src/ui_dashboard.c:606`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *, uint16_t, int, int)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6277,7 +6313,7 @@ Functions: **107**
 
 ### `theme_isqrt`
 
-- Location: `src/ui_dashboard.c:615`
+- Location: `src/ui_dashboard.c:619`
 - Linkage: `static`
 - Type: `uint16_t (uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6286,7 +6322,7 @@ Functions: **107**
 
 ### `theme_pair`
 
-- Location: `src/ui_dashboard.c:621`
+- Location: `src/ui_dashboard.c:625`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *, uint32_t, char *, char *, const char **, const char **, const char **, const char **)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6295,7 +6331,7 @@ Functions: **107**
 
 ### `theme_right_text`
 
-- Location: `src/ui_dashboard.c:625`
+- Location: `src/ui_dashboard.c:629`
 - Linkage: `static`
 - Type: `void (const char *, const ui_font1_t *, uint16_t, int, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6304,7 +6340,7 @@ Functions: **107**
 
 ### `arc_tile`
 
-- Location: `src/ui_dashboard.c:629`
+- Location: `src/ui_dashboard.c:633`
 - Linkage: `static`
 - Type: `void (bool, const char *, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6313,7 +6349,7 @@ Functions: **107**
 
 ### `theme_speed_arc`
 
-- Location: `src/ui_dashboard.c:640`
+- Location: `src/ui_dashboard.c:644`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const bafang_telemetry_t *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6322,7 +6358,7 @@ Functions: **107**
 
 ### `theme_status`
 
-- Location: `src/ui_dashboard.c:650`
+- Location: `src/ui_dashboard.c:654`
 - Linkage: `static`
 - Type: `void (const dpc245_ui_status_t *, bool)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6331,7 +6367,7 @@ Functions: **107**
 
 ### `theme_soc_text`
 
-- Location: `src/ui_dashboard.c:656`
+- Location: `src/ui_dashboard.c:660`
 - Linkage: `static`
 - Type: `void (const bafang_telemetry_t *, char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6340,7 +6376,7 @@ Functions: **107**
 
 ### `theme_banner`
 
-- Location: `src/ui_dashboard.c:661`
+- Location: `src/ui_dashboard.c:665`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, uint16_t, uint16_t, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6349,7 +6385,7 @@ Functions: **107**
 
 ### `draw_arc`
 
-- Location: `src/ui_dashboard.c:667`
+- Location: `src/ui_dashboard.c:671`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_ui_status_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6358,7 +6394,7 @@ Functions: **107**
 
 ### `draw_wedge`
 
-- Location: `src/ui_dashboard.c:718`
+- Location: `src/ui_dashboard.c:722`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_ui_status_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6367,7 +6403,7 @@ Functions: **107**
 
 ### `draw_menu`
 
-- Location: `src/ui_dashboard.c:778`
+- Location: `src/ui_dashboard.c:782`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6376,7 +6412,7 @@ Functions: **107**
 
 ### `draw_edit`
 
-- Location: `src/ui_dashboard.c:799`
+- Location: `src/ui_dashboard.c:803`
 - Linkage: `static`
 - Type: `void (const char *, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6385,7 +6421,7 @@ Functions: **107**
 
 ### `draw_edit_num`
 
-- Location: `src/ui_dashboard.c:802`
+- Location: `src/ui_dashboard.c:806`
 - Linkage: `static`
 - Type: `void (const char *, uint32_t, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6394,7 +6430,7 @@ Functions: **107**
 
 ### `draw_hmi_info`
 
-- Location: `src/ui_dashboard.c:809`
+- Location: `src/ui_dashboard.c:813`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const dpc245_hwinfo_t *, uint8_t, bool, bool)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6403,7 +6439,7 @@ Functions: **107**
 
 ### `draw_wheel`
 
-- Location: `src/ui_dashboard.c:825`
+- Location: `src/ui_dashboard.c:829`
 - Linkage: `static`
 - Type: `void (const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6412,7 +6448,7 @@ Functions: **107**
 
 ### `draw_speed_limit`
 
-- Location: `src/ui_dashboard.c:831`
+- Location: `src/ui_dashboard.c:835`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6421,7 +6457,7 @@ Functions: **107**
 
 ### `value_text`
 
-- Location: `src/ui_dashboard.c:834`
+- Location: `src/ui_dashboard.c:838`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6430,7 +6466,7 @@ Functions: **107**
 
 ### `raw4_le`
 
-- Location: `src/ui_dashboard.c:839`
+- Location: `src/ui_dashboard.c:843`
 - Linkage: `static`
 - Type: `uint32_t (const uint8_t *, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6439,7 +6475,7 @@ Functions: **107**
 
 ### `draw_page_no`
 
-- Location: `src/ui_dashboard.c:843`
+- Location: `src/ui_dashboard.c:847`
 - Linkage: `static`
 - Type: `void (uint8_t, size_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6448,7 +6484,7 @@ Functions: **107**
 
 ### `draw_battery`
 
-- Location: `src/ui_dashboard.c:849`
+- Location: `src/ui_dashboard.c:853`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6457,7 +6493,7 @@ Functions: **107**
 
 ### `draw_controller`
 
-- Location: `src/ui_dashboard.c:892`
+- Location: `src/ui_dashboard.c:896`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6466,7 +6502,7 @@ Functions: **107**
 
 ### `draw_sensor`
 
-- Location: `src/ui_dashboard.c:914`
+- Location: `src/ui_dashboard.c:918`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_adc_snapshot_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6475,7 +6511,7 @@ Functions: **107**
 
 ### `draw_errors`
 
-- Location: `src/ui_dashboard.c:933`
+- Location: `src/ui_dashboard.c:937`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6484,7 +6520,7 @@ Functions: **107**
 
 ### `draw_trip_reset`
 
-- Location: `src/ui_dashboard.c:951`
+- Location: `src/ui_dashboard.c:955`
 - Linkage: `static`
 - Type: `void (void)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6493,7 +6529,7 @@ Functions: **107**
 
 ### `adv_row`
 
-- Location: `src/ui_dashboard.c:956`
+- Location: `src/ui_dashboard.c:960`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, const char *, bool, bool)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6502,7 +6538,7 @@ Functions: **107**
 
 ### `adv_u16`
 
-- Location: `src/ui_dashboard.c:961`
+- Location: `src/ui_dashboard.c:965`
 - Linkage: `static`
 - Type: `void (char *, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6511,7 +6547,7 @@ Functions: **107**
 
 ### `adv_centi`
 
-- Location: `src/ui_dashboard.c:963`
+- Location: `src/ui_dashboard.c:967`
 - Linkage: `static`
 - Type: `void (char *, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6520,7 +6556,7 @@ Functions: **107**
 
 ### `adv_status_or_footer`
 
-- Location: `src/ui_dashboard.c:967`
+- Location: `src/ui_dashboard.c:971`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6529,7 +6565,7 @@ Functions: **107**
 
 ### `draw_adv_wheel`
 
-- Location: `src/ui_dashboard.c:970`
+- Location: `src/ui_dashboard.c:974`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6538,7 +6574,7 @@ Functions: **107**
 
 ### `draw_adv_assist`
 
-- Location: `src/ui_dashboard.c:984`
+- Location: `src/ui_dashboard.c:988`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6547,7 +6583,7 @@ Functions: **107**
 
 ### `diag_u32`
 
-- Location: `src/ui_dashboard.c:1004`
+- Location: `src/ui_dashboard.c:1008`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, uint32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6556,7 +6592,7 @@ Functions: **107**
 
 ### `diag_i32`
 
-- Location: `src/ui_dashboard.c:1007`
+- Location: `src/ui_dashboard.c:1011`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, int32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6565,7 +6601,7 @@ Functions: **107**
 
 ### `diag_append`
 
-- Location: `src/ui_dashboard.c:1010`
+- Location: `src/ui_dashboard.c:1014`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6574,7 +6610,7 @@ Functions: **107**
 
 ### `diag_number`
 
-- Location: `src/ui_dashboard.c:1014`
+- Location: `src/ui_dashboard.c:1018`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6583,7 +6619,7 @@ Functions: **107**
 
 ### `diag_elapsed_ms`
 
-- Location: `src/ui_dashboard.c:1020`
+- Location: `src/ui_dashboard.c:1024`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6592,7 +6628,7 @@ Functions: **107**
 
 ### `diag_signed`
 
-- Location: `src/ui_dashboard.c:1024`
+- Location: `src/ui_dashboard.c:1028`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, int16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6601,7 +6637,7 @@ Functions: **107**
 
 ### `diag_hex_byte`
 
-- Location: `src/ui_dashboard.c:1028`
+- Location: `src/ui_dashboard.c:1032`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6610,7 +6646,7 @@ Functions: **107**
 
 ### `diag_sources`
 
-- Location: `src/ui_dashboard.c:1032`
+- Location: `src/ui_dashboard.c:1036`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6619,7 +6655,7 @@ Functions: **107**
 
 ### `diag_stage`
 
-- Location: `src/ui_dashboard.c:1040`
+- Location: `src/ui_dashboard.c:1044`
 - Linkage: `static`
 - Type: `void (uint16_t, uint16_t, const char *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6628,7 +6664,7 @@ Functions: **107**
 
 ### `ble_reject_text`
 
-- Location: `src/ui_dashboard.c:1045`
+- Location: `src/ui_dashboard.c:1049`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6637,7 +6673,7 @@ Functions: **107**
 
 ### `diag_result_text`
 
-- Location: `src/ui_dashboard.c:1056`
+- Location: `src/ui_dashboard.c:1060`
 - Linkage: `static`
 - Type: `const char *(evist_txn_result_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6646,7 +6682,7 @@ Functions: **107**
 
 ### `diag_live_source`
 
-- Location: `src/ui_dashboard.c:1065`
+- Location: `src/ui_dashboard.c:1069`
 - Linkage: `static`
 - Type: `void (uint16_t, const dpc245_temp_live_source_t *, bool, int16_t, const char *, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6655,16 +6691,16 @@ Functions: **107**
 
 ### `draw_adv_diag`
 
-- Location: `src/ui_dashboard.c:1087`
+- Location: `src/ui_dashboard.c:1091`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint8_t, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
 - Direct callers: `draw_advanced`
-- Direct callees: `bafang_power_w`, `bafang_temperature_raw_valid`, `ble_reject_text`, `diag_append`, `diag_hex_byte`, `diag_i32`, `diag_number`, `diag_result_text`, `diag_signed`, `diag_sources`, `diag_stage`, `diag_u32`, `display_metric`, `draw_page_no`, `footer`, `m_hex32`, `m_text`, `m_u32`, `speed_unit`, `value_text`, `value_u32`, `value_x100`
+- Direct callees: `bafang_power_w`, `bafang_temperature_raw_valid`, `ble_reject_text`, `diag_append`, `diag_hex_byte`, `diag_i32`, `diag_number`, `diag_result_text`, `diag_signed`, `diag_sources`, `diag_stage`, `diag_u32`, `display_metric`, `dpc245_runtime_pedal_avg`, `draw_page_no`, `footer`, `m_hex32`, `m_text`, `m_u32`, `speed_unit`, `value_text`, `value_u32`, `value_x100`
 
 ### `draw_advanced`
 
-- Location: `src/ui_dashboard.c:1224`
+- Location: `src/ui_dashboard.c:1231`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6673,7 +6709,7 @@ Functions: **107**
 
 ### `ui_dashboard_draw`
 
-- Location: `src/ui_dashboard.c:1313`
+- Location: `src/ui_dashboard.c:1320`
 - Linkage: `global`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_adc_snapshot_t *, const dpc245_hwinfo_t *, uint8_t, bool, bool, bool, uint32_t, const dpc245_ui_status_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.

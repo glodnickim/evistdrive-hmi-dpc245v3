@@ -4,7 +4,7 @@
 
 **Documentation version:** Draft 1.0, October 15, 2026
 
-**Reference firmware:** EVistDrive HMI **10.23**, tag `v10.23` of `glodnickim/evistdrive-hmi-dpc245v3`, inspected October 15, 2026
+**Reference firmware:** EVistDrive HMI **10.24**, tag `v10.24` of `glodnickim/evistdrive-hmi-dpc245v3`, inspected October 21, 2026
 
 **Interface language:** English. This manual preserves the exact option names displayed on the device.
 
@@ -140,7 +140,7 @@ When `TEMP VIEW = BOTH`, the `TEMP` panel shows both temperatures. With other se
 
 By default, EVistDrive enables the first **nine** pairs. The tenth pair (`TEMP`) is available but initially disabled. Configure the list via `DISPLAY → LOWER FIELDS`.
 
-**About `PEDAL`:** Rider power is estimated by the firmware using sensor data, not measured by a dedicated external power meter. Calories are also estimated from calculated work and may differ from fitness-device readings.
+**About `PEDAL`:** The value is a moving average of about the last ten seconds (the last five controller readings), shown in 5 W steps. It shows `--` when no reading is available, and drops to 0 when pedalling stops. Rider power is estimated by the firmware using sensor data, not measured by a dedicated external power meter. Because the controller reports one instantaneous torque reading about every two seconds, at some steady cadences the value can read too high or too low. Calories are also estimated from calculated work and may differ from fitness-device readings. The same averaged value is sent to connected apps in the periodic status bytes `26..27`.
 
 ## 4. Complete menu structure
 
@@ -413,7 +413,7 @@ This is an advanced read-only view. `UP/DOWN` switches between `P1/7` and `P7/7`
 | Page | Content |
 |---|---|
 | 1 | `SOC RAW`, voltage, battery temperature, raw capacity, acceleration mode and start-angle reading (if available) |
-| 2 | Raw torque sensor reading, torque sensor voltage, cadence, power, controller and motor temperatures |
+| 2 | Raw torque sensor reading, torque sensor voltage, cadence, power, averaged pedal power (`PEDAL W`), controller and motor temperatures |
 | 3 | Quick Walk configuration, LEGAL speed limit, assistance level, RIDE mode, session mode, last speed limit written to the controller and application result |
 | 4 | Button-event counter, maximum loop time and firmware stage timings (CAN, BLE, ADC, application, SPI, LCD) |
 | 5 | Most recent controller write: command, ACK and result; rejected BLE writes and their reasons |
@@ -545,7 +545,7 @@ This manual was developed primarily from the actual UI labels, button handling a
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – technical project documentation;
 - `README.md` – release and version information.
 
-**Version note:** the current version (**10.23**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
+**Version note:** the current version (**10.24**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
 
 **Before marking this manual as verified:** The project maintainer should compare this manual with the current `HEAD`, resolve inconsistencies and generate/verify simulator screenshots. In particular, the following require physical hardware verification: `AUTO OFF` behavior, the direction of the `ACCELERATION` scale, how `BACKLIGHT → LEVEL` affects actual brightness, details of Standard Walk operation, and successful application of RIDE settings with a specific controller. Do not present these as hardware-verified facts until they have been tested.
 

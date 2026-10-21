@@ -5,7 +5,7 @@
 /* Product identity */
 #define EVISTDRIVE_HMI_NAME "EVistDrive HMI"
 /* Release number of this application. */
-#define EVISTDRIVE_HMI_VERSION "10.23"
+#define EVISTDRIVE_HMI_VERSION "10.24"
 
 /* Production feature set. Override with -D for diagnostic builds. */
 #ifndef EVIST_ENABLE_CAN_TX

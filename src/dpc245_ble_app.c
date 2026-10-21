@@ -626,6 +626,12 @@ size_t dpc245_ble_app_build_periodic(uint8_t *out, size_t capacity,
     put_u16le(&p[24], calories);
     put_u32le(&p[28], trip_minutes);
     p[32] = dpc245_unit(s) ? 1u : 0u;
+    {
+        uint16_t pedal;
+        if (dpc245_runtime_pedal_avg(&app->runtime, &pedal))
+            put_u16le(&p[26], (uint16_t)(0x8000u |
+                                  (pedal > 0x7FFFu ? 0x7FFFu : pedal)));
+    }
     put_u16le(&p[35], dpc245_get_u16_le(s, DPC245_OFS_AVG_SPEED_RAW));
     put_u16le(&p[37], dpc245_get_u16_le(s, DPC245_OFS_MAX_SPEED_RAW));
 

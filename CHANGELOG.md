@@ -1,5 +1,12 @@
 # Changelog
 
+## 10.24
+
+- PEDAL power is now averaged over about 10 seconds and shown in 5 W steps; it shows `--` when no data is available and drops to 0 when pedalling stops.
+- The display also sends the averaged pedal power to connected apps (status bytes 26–27).
+- DIAGNOSTICS page 2 shows `PEDAL W`, the unrounded averaged value.
+- As with every new version, display options return to their defaults at the first start; the odometer, ride times and error history are kept.
+
 ## 10.23
 
 - RIDE MODE: the default OFFROAD speed is 40.0 km/h (LEGAL stays 25.0 km/h).

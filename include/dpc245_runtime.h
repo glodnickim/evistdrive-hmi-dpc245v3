@@ -8,6 +8,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/* Number of controller power samples in the displayed moving average. The
+ * controller sends 0x3200 about every two seconds, so the window is about
+ * ten seconds. */
+#define DPC245_PEDAL_WINDOW 5u
+/* A power sample older than this is reported as unavailable. */
+#define DPC245_PEDAL_STALE_MS 5000u
+
 /* Ride-statistics state machine.
  * Persistent bytes remain canonical in dpc245_settings_t so serialization
  * uses the 73-byte persistent settings record. */
@@ -23,7 +30,15 @@ typedef struct {
     bool have_controller_error;
     bool have_sensor_error;
     bool have_battery_error;
-    uint16_t pedal_power_w;
+    uint16_t pedal_power_w; /* latest per-frame sample; also the calorie input */
+    uint16_t pedal_avg_w;   /* mean of the samples in the window */
+    uint16_t pedal_samples[DPC245_PEDAL_WINDOW];
+    uint8_t pedal_sample_count;
+    uint8_t pedal_sample_next;
+    bool pedal_avg_valid;
+    bool pedal_seen;      /* at least one 0x3200 frame received */
+    uint32_t pedal_last_ms;
+    uint32_t now_ms;      /* main.c sets this before CAN frames are consumed */
     uint32_t rider_energy_half_joule;
 } dpc245_runtime_t;
 
@@ -57,6 +72,15 @@ void dpc245_runtime_trip_reset(dpc245_runtime_t *rt);
  * true. The caller decides the gate (main.c: speed is non-zero). */
 void dpc245_runtime_tick_500ms(dpc245_runtime_t *rt,
                                       bool activity_gate);
+
+/* Averaged rider power, last DPC245_PEDAL_WINDOW samples. Returns false while
+ * no sample is available or after DPC245_PEDAL_STALE_MS without a 0x3200
+ * frame. Call dpc245_runtime_pedal_poll() once per main-loop pass. */
+bool dpc245_runtime_pedal_avg(const dpc245_runtime_t *rt, uint16_t *watts);
+
+/* Marks the averaged power unavailable and clears the window when no 0x3200
+ * frame arrived for more than DPC245_PEDAL_STALE_MS. */
+void dpc245_runtime_pedal_poll(dpc245_runtime_t *rt, uint32_t now_ms);
 
 /* Map the persistent record to the raw inputs of the
  * 03106301/02/03/04 status frames. */

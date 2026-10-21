@@ -66,6 +66,23 @@ static bafang_can_frame_t ride_reply(uint8_t op, uint8_t cmd, const uint8_t *pay
     return f;
 }
 
+/* 0x3200 realtime frame with a known torque sample and cadence. */
+static bafang_can_frame_t pedal_frame(uint16_t torque, uint8_t cadence) {
+    bafang_can_frame_t f={0};
+    f.id=0x02F83200u;
+    f.dlc=8u;
+    f.data[3]=cadence;
+    f.data[4]=(uint8_t)torque;
+    f.data[5]=(uint8_t)(torque>>8);
+    return f;
+}
+
+static void pedal_at(dpc245_runtime_t *rt, uint32_t now_ms, uint16_t torque, uint8_t cadence) {
+    bafang_can_frame_t f=pedal_frame(torque,cadence);
+    rt->now_ms=now_ms;
+    (void)dpc245_runtime_on_can(rt,&f);
+}
+
 /* Exercise the same nonblocking read/write transaction driven by main.c. */
 #if EVIST_ENABLE_RIDE_SPEED_WRITE
 static void ride_controller_case(unsigned fault) {
@@ -1293,6 +1310,25 @@ int main(void) {
         for(size_t i=0u;i<pn;i++)if(dpc245_ble_parser_feed(&rp,periodic[i],&rf))rgot=true;
         assert(rgot&&rf.length==sizeof(expected_live));
         for(size_t i=0u;i<sizeof(expected_live);i++)assert(rf.payload[i]==expected_live[i]);
+
+        /* rider_power_avg: [26..27], bit15 = valid, bits 0..14 = watts. */
+        pn=dpc245_ble_app_build_periodic(periodic,sizeof(periodic),&ba,&br,true);
+        dpc245_ble_parser_init(&rp);rgot=false;
+        for(size_t i=0u;i<pn;i++)if(dpc245_ble_parser_feed(&rp,periodic[i],&rf))rgot=true;
+        assert(rgot&&rf.payload[26]==0u&&rf.payload[27]==0u); /* no sample yet */
+        pedal_at(&ba.runtime,2000u,5182u,0u);
+        pn=dpc245_ble_app_build_periodic(periodic,sizeof(periodic),&ba,&br,true);
+        dpc245_ble_parser_init(&rp);rgot=false;
+        for(size_t i=0u;i<pn;i++)if(dpc245_ble_parser_feed(&rp,periodic[i],&rf))rgot=true;
+        assert(rgot&&rf.payload[26]==0x00u&&rf.payload[27]==0x80u); /* valid 0 W */
+        pedal_at(&ba.runtime,4000u,2966u,30u);
+        pn=dpc245_ble_app_build_periodic(periodic,sizeof(periodic),&ba,&br,true);
+        dpc245_ble_parser_init(&rp);rgot=false;
+        for(size_t i=0u;i<pn;i++)if(dpc245_ble_parser_feed(&rp,periodic[i],&rf))rgot=true;
+        assert(rgot&&rf.payload[26]==0xFAu&&rf.payload[27]==0x80u); /* valid 250 W */
+        for(size_t i=0u;i<sizeof(expected_live);i++)
+            if(i!=26u&&i!=27u)assert(rf.payload[i]==expected_live[i]);
+
         ba.assist_level=3u;
         pn=dpc245_ble_app_build_periodic(periodic,sizeof(periodic),&ba,&br,true);
         dpc245_ble_parser_init(&rp);rgot=false;
@@ -1450,6 +1486,109 @@ int main(void) {
 
         dpc245_v3_hmi_stats_raw_t sraw={0}; dpc245_runtime_hmi_stats(&sr,&sraw);
         assert(sraw.raw10==1010u && sraw.raw14==0u && sraw.raw18==2010u);
+    }
+
+    /* Rider power moving average, freshness and calorie input. */
+    {
+        dpc245_settings_t ps; dpc245_settings_defaults(&ps);
+        dpc245_runtime_t rt; dpc245_runtime_init(&rt,&ps);
+        uint16_t w=0xFFFFu;
+
+        /* No frame yet: unavailable. Poll alone does not invent a value. */
+        assert(!dpc245_runtime_pedal_avg(&rt,&w));
+        dpc245_runtime_pedal_poll(&rt,1000u);
+        assert(!dpc245_runtime_pedal_avg(&rt,&w));
+
+        /* Single sample (torque 2966, cadence 30 -> 250 W). */
+        pedal_at(&rt,1000u,2966u,30u);
+        assert(rt.pedal_power_w==250u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==250u);
+
+        /* Partial window: mean of the samples present, rounded to nearest. */
+        dpc245_runtime_init(&rt,&ps);
+        pedal_at(&rt,3000u,1637u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==100u);
+        pedal_at(&rt,3000u,2523u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==150u);
+        pedal_at(&rt,3000u,3409u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==200u);
+        pedal_at(&rt,3000u,4296u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==250u);
+        pedal_at(&rt,3000u,5182u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==300u);
+
+        /* Six samples: the oldest leaves the five-sample window. */
+        pedal_at(&rt,3000u,6068u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==400u);
+
+        /* Zero samples with cadence above zero stay in the window and lower
+         * the mean; they do not reset it. */
+        pedal_at(&rt,3000u,0u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==360u);
+        assert(rt.pedal_power_w==0u);
+
+        /* Stopped crank: window cleared, value 0 and still valid. */
+        pedal_at(&rt,3000u,5182u,0u);
+        assert(rt.pedal_power_w==0u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==0u);
+        assert(rt.pedal_sample_count==0u);
+
+        /* Torque at or below the offset is a zero sample, not a reset. */
+        pedal_at(&rt,3000u,750u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==0u);
+        pedal_at(&rt,3000u,1637u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==50u);
+
+        /* More than 5000 ms without a 0x3200 frame: invalid, window cleared.
+         * The next frame is accepted again with a single-sample mean. */
+        pedal_at(&rt,10000u,5182u,0u); /* clear the window */
+        pedal_at(&rt,10000u,2966u,30u);
+        dpc245_runtime_pedal_poll(&rt,15000u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==250u);
+        dpc245_runtime_pedal_poll(&rt,15001u);
+        assert(!dpc245_runtime_pedal_avg(&rt,&w));
+        assert(rt.pedal_sample_count==0u);
+        pedal_at(&rt,15002u,1637u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt,&w) && w==100u);
+
+        /* Wrap-safe freshness across the 32-bit millisecond boundary. */
+        dpc245_runtime_t rt2; dpc245_runtime_init(&rt2,&ps);
+        const uint32_t base=0xFFFFFF00u;
+        pedal_at(&rt2,base,2966u,30u);
+        dpc245_runtime_pedal_poll(&rt2,base+5000u);
+        assert(dpc245_runtime_pedal_avg(&rt2,&w) && w==250u);
+        dpc245_runtime_pedal_poll(&rt2,base+5001u);
+        assert(!dpc245_runtime_pedal_avg(&rt2,&w));
+        pedal_at(&rt2,base+5001u,1637u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt2,&w) && w==100u);
+
+        /* The displayed average saturates at 9999 W; the per-frame sample is
+         * unchanged for the calorie integration. */
+        pedal_at(&rt2,base+5001u,65000u,255u);
+        assert(rt2.pedal_power_w==61624u);
+        assert(dpc245_runtime_pedal_avg(&rt2,&w) && w==9999u);
+
+        /* Trip reset clears the window and the average; validity follows
+         * sample freshness. */
+        dpc245_runtime_t rt3; dpc245_runtime_init(&rt3,&ps);
+        pedal_at(&rt3,1000u,1637u,30u);
+        pedal_at(&rt3,1000u,2523u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt3,&w) && w==150u);
+        dpc245_runtime_trip_reset(&rt3);
+        assert(rt3.pedal_sample_count==0u);
+        assert(dpc245_runtime_pedal_avg(&rt3,&w) && w==0u);
+        pedal_at(&rt3,1000u,3409u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt3,&w) && w==300u);
+
+        /* Calories keep integrating the per-frame sample, not the average. */
+        dpc245_runtime_t rt4; dpc245_runtime_init(&rt4,&ps);
+        pedal_at(&rt4,1000u,1637u,30u);
+        dpc245_runtime_tick_500ms(&rt4,true);
+        assert(rt4.rider_energy_half_joule==100u);
+        pedal_at(&rt4,1000u,3409u,30u);
+        assert(dpc245_runtime_pedal_avg(&rt4,&w) && w==200u);
+        dpc245_runtime_tick_500ms(&rt4,true);
+        assert(rt4.rider_energy_half_joule==400u);
     }
 
     /* Persistent settings record and serial-memory journal. */

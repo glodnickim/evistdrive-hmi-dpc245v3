@@ -386,6 +386,29 @@ int main(void) {
         assert(strcmp(ll,"CTRL")==0 && strcmp(left,"--")==0);
         t->controller_temp_raw=81u;
     }
+
+    /* Panel 6 PEDAL: moving average rounded to 5 W, `--` without data. */
+    {
+        char left[6],right[6];const char *ll,*rl,*lu,*ru;
+        app.runtime.pedal_avg_valid=false;
+        ui_dashboard_lower_pair_text(&app,t,6u,0u,left,right,&ll,&rl,&lu,&ru);
+        assert(strcmp(ll,"PEDAL")==0 && strcmp(left,"--")==0);
+        assert(strcmp(rl,"MOTOR")==0 && strcmp(lu,"W")==0 && strcmp(ru,"W")==0);
+        app.runtime.pedal_avg_valid=true;
+        app.runtime.pedal_avg_w=248u;
+        ui_dashboard_lower_pair_text(&app,t,6u,0u,left,right,&ll,&rl,&lu,&ru);
+        assert(strcmp(left,"250")==0);
+        app.runtime.pedal_avg_w=247u;
+        ui_dashboard_lower_pair_text(&app,t,6u,0u,left,right,&ll,&rl,&lu,&ru);
+        assert(strcmp(left,"245")==0);
+        app.runtime.pedal_avg_w=9999u;
+        ui_dashboard_lower_pair_text(&app,t,6u,0u,left,right,&ll,&rl,&lu,&ru);
+        assert(strcmp(left,"9995")==0);
+        app.runtime.pedal_avg_w=0u;
+        ui_dashboard_lower_pair_text(&app,t,6u,0u,left,right,&ll,&rl,&lu,&ru);
+        assert(strcmp(left,"0")==0);
+        app.runtime.pedal_avg_valid=false;
+    }
     test_now_ms=2999u;reference();(void)render();
     test_now_ms=3000u;reference();reset_touched();sent=render();
     assert(sent>0u && touched_x1<=144u && touched_y0>=130u && touched_y1<=170u);

@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.23**, tag `v10.23` repozytorium `glodnickim/evistdrive-hmi-dpc245v3`, stan odczytany 15.10.2026
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.24**, tag `v10.24` repozytorium `glodnickim/evistdrive-hmi-dpc245v3`, stan odczytany 21.10.2026
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -140,7 +140,7 @@ W trybie `TEMP VIEW = BOTH` panel `TEMP` pokazuje obie temperatury. W innych ust
 
 Fabryczne ustawienia EVistDrive aktywują pierwsze **dziewięć** par; dziesiąta (`TEMP`) jest dostępna, lecz początkowo wyłączona. Listę aktywnych par zmienisz przez `DISPLAY → LOWER FIELDS`.
 
-**Ważne dla `PEDAL`:** moc człowieka jest w tym firmware wyliczana na podstawie danych czujnika, więc jest to oszacowanie, nie odczyt z osobnego miernika mocy. Kalorie są obliczane na podstawie oszacowanej pracy i mogą odbiegać od pomiarów urządzeń sportowych.
+**Ważne dla `PEDAL`:** wartość jest średnią kroczącą z około ostatnich dziesięciu sekund (ostatnich pięciu odczytów kontrolera), pokazywaną w krokach 5 W. Gdy brak odczytu, wyświetla się `--`; po zaprzestaniu pedałowania spada do 0. Moc człowieka jest w tym firmware wyliczana na podstawie danych czujnika, więc jest to oszacowanie, nie odczyt z osobnego miernika mocy. Ponieważ kontroler raportuje jeden chwilowy odczyt momentu mniej więcej co dwie sekundy, przy niektórych stałych kadencjach wartość może być zbyt wysoka lub zbyt niska. Kalorie są obliczane na podstawie oszacowanej pracy i mogą odbiegać od pomiarów urządzeń sportowych. Ta sama uśredniona wartość jest wysyłana do podłączonych aplikacji w bajtach `26..27` statusu okresowego.
 
 ## 4. Struktura całego menu
 
@@ -413,7 +413,7 @@ To zaawansowany ekran tylko do odczytu. `UP/DOWN` przełącza strony `P1/7`–`P
 | Strona | Zawartość |
 |---|---|
 | 1 | `SOC RAW`, napięcie, temperatura baterii, surowa pojemność, tryb przyspieszenia, odczyt kąta startowego (jeśli dostępny) |
-| 2 | Surowy nacisk, napięcie nacisku, kadencja, moc, temperatura kontrolera i silnika |
+| 2 | Surowy nacisk, napięcie nacisku, kadencja, moc, uśredniona moc pedałowania (`PEDAL W`), temperatura kontrolera i silnika |
 | 3 | Konfiguracja Quick Walk, limit LEGAL, poziom wspomagania, tryb RIDE, tryb sesji, ostatni limit zapisany do kontrolera, wynik zastosowania |
 | 4 | Licznik zdarzeń przycisków, maksymalny czas pętli i czasy etapów działania firmware (CAN, BLE, ADC, aplikacja, SPI, LCD) |
 | 5 | Ostatnia operacja zapisu do kontrolera: komenda, ACK, rezultat; odrzucone zapisy BLE i przyczyna |
@@ -545,7 +545,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.23**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.24**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

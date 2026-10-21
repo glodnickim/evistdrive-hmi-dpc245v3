@@ -25,6 +25,8 @@ Available lower panels:
 9. VOLT + TEMP
 10. TEMP (controller and motor temperature)
 
+`PEDAL` is a moving average of about the last ten seconds (the last five controller readings), shown rounded to 5 W. It shows `--` while no reading is available, and drops to 0 when pedalling stops. The same averaged value is sent to connected apps in the periodic status. The value is an estimate; at some steady cadences it can read too high or too low, because the controller reports one instantaneous torque reading about every two seconds.
+
 ## Main settings
 
 The settings chord opens the root menu. DISPLAY → THEMES lists STANDARD, YELLOW, ARC, WEDGE, SAVE and BACK. UP/DOWN moves the cursor; POWER on a theme marks a pending choice. ACTIVE identifies the theme confirmed by memory and SELECTED identifies a different pending choice. POWER on SAVE applies the choice and reports the memory result on the same page; after an error, SAVE retries it. In a build without memory writes, ACTIVE follows the applied choice. BACK discards a pending choice; after a failed save, BACK or the 30-second idle exit also restores the confirmed theme in runtime without another write. A write still in progress continues after exit. The dashboard returns through the root EXIT row or after 30 seconds without input.

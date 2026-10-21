@@ -9,6 +9,29 @@ static void add_u32(dpc245_settings_t *s, uint8_t off, uint32_t delta) {
 
 static void update_service_due(dpc245_runtime_t *rt);
 
+static void pedal_window_clear(dpc245_runtime_t *rt) {
+    rt->pedal_sample_count = 0u;
+    rt->pedal_sample_next = 0u;
+    rt->pedal_avg_w = 0u;
+}
+
+/* Zero samples with cadence above zero are valid samples and stay in the
+ * window; only a stopped crank clears it. */
+static void pedal_window_push(dpc245_runtime_t *rt, uint16_t sample) {
+    uint32_t sum = 0u;
+    uint32_t avg;
+    rt->pedal_samples[rt->pedal_sample_next] = sample;
+    rt->pedal_sample_next =
+        (uint8_t)((rt->pedal_sample_next + 1u) % DPC245_PEDAL_WINDOW);
+    if (rt->pedal_sample_count < DPC245_PEDAL_WINDOW)
+        rt->pedal_sample_count++;
+    for (uint8_t i = 0u; i < rt->pedal_sample_count; i++)
+        sum += rt->pedal_samples[i];
+    avg = (sum + rt->pedal_sample_count / 2u) / rt->pedal_sample_count;
+    if (avg > 9999u) avg = 9999u;
+    rt->pedal_avg_w = (uint16_t)avg;
+}
+
 void dpc245_runtime_init(dpc245_runtime_t *rt,
                                const dpc245_settings_t *settings) {
     if (!rt) return;
@@ -21,6 +44,11 @@ void dpc245_runtime_init(dpc245_runtime_t *rt,
     rt->controller_error = rt->sensor_error = rt->battery_error = 0u;
     rt->have_controller_error = rt->have_sensor_error = rt->have_battery_error = false;
     rt->pedal_power_w = 0u;
+    pedal_window_clear(rt);
+    rt->pedal_avg_valid = false;
+    rt->pedal_seen = false;
+    rt->pedal_last_ms = 0u;
+    rt->now_ms = 0u;
     rt->rider_energy_half_joule = 0u;
     update_service_due(rt);
 }
@@ -59,11 +87,25 @@ bool dpc245_runtime_on_can(dpc245_runtime_t *rt,
         {
             uint16_t torque=(uint16_t)frame->data[4]|((uint16_t)frame->data[5]<<8);
             uint8_t cadence=frame->data[3];
+            uint16_t sample=0u;
             if(torque>750u && cadence>0u){
                 uint32_t n=(uint32_t)(torque-750u)*(uint32_t)cadence*88u;
                 uint32_t watts=n/23396u;
-                rt->pedal_power_w=(uint16_t)(watts>65535u?65535u:watts);
-            } else rt->pedal_power_w=0u;
+                sample=(uint16_t)(watts>65535u?65535u:watts);
+            }
+            rt->pedal_power_w=sample;
+            /* A gap longer than the freshness limit also clears the window,
+             * even if no poll ran while the main loop was busy. */
+            if(rt->pedal_seen&&(uint32_t)(rt->now_ms-rt->pedal_last_ms)>DPC245_PEDAL_STALE_MS)
+                pedal_window_clear(rt);
+            rt->pedal_last_ms=rt->now_ms;
+            rt->pedal_seen=true;
+            if(cadence==0u){
+                pedal_window_clear(rt);
+            }else{
+                pedal_window_push(rt,sample);
+            }
+            rt->pedal_avg_valid=true;
         }
         uint16_t current = (uint16_t)((uint16_t)frame->data[1] |
                                       ((uint16_t)frame->data[2] << 8));
@@ -148,6 +190,23 @@ void dpc245_runtime_trip_reset(dpc245_runtime_t *rt) {
     dpc245_set_u16_le(&rt->settings, DPC245_OFS_AVG_SPEED_RAW, 0u);
     rt->rider_energy_half_joule = 0u;
     rt->pedal_power_w = 0u;
+    /* Validity follows sample freshness, not the trip reset. */
+    pedal_window_clear(rt);
+}
+
+bool dpc245_runtime_pedal_avg(const dpc245_runtime_t *rt, uint16_t *watts) {
+    if (!rt || !rt->pedal_avg_valid) return false;
+    if (watts) *watts = rt->pedal_avg_w;
+    return true;
+}
+
+void dpc245_runtime_pedal_poll(dpc245_runtime_t *rt, uint32_t now_ms) {
+    if (!rt) return;
+    if (!rt->pedal_seen ||
+        (uint32_t)(now_ms - rt->pedal_last_ms) > DPC245_PEDAL_STALE_MS) {
+        rt->pedal_avg_valid = false;
+        pedal_window_clear(rt);
+    }
 }
 
 void dpc245_runtime_tick_500ms(dpc245_runtime_t *rt,

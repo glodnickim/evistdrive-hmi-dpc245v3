@@ -465,6 +465,7 @@ int main(void){
             stage_start=loop_now_us;
         }
         bafang_can_frame_t f;
+        app.runtime.now_ms=millis();
         while(dpc245_can_receive_poll(&f)){
             const uint32_t rx_now=millis();
             if(bafang_can_id_decode(f.id).src==BAFANG_NODE_CONTROLLER)ride_controller_seen=true;
@@ -502,6 +503,7 @@ int main(void){
             (void)dpc245_runtime_on_can(&app.runtime,&f);
         }
         stage_start=stage_end(&app,ST_CAN_RX,stage_start);
+        dpc245_runtime_pedal_poll(&app.runtime,millis());
         dpc245_ble_uart_poll();
         {
             uint8_t ble_byte;

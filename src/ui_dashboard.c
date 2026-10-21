@@ -256,7 +256,11 @@ void ui_dashboard_lower_pair_text(const dpc245_app_t *c,const bafang_telemetry_t
     case 3: *ll="CADENCE";*rl="TORQUE";*lu="RPM";*ru="";fmt_u32_5(l,t->cadence_rpm);fmt_u32_5(r,t->torque_signal_mv);break;
     case 4: *ll="TIME";*rl="TRIP";*lu="MIN";*ru=distance_unit(c);fmt_u32_5(l,mins);fmt_x100_5(r,display_metric(c,trip));break;
     case 5: *ll="WATT";*lu="W";*ru="C";fmt_u32_5(l,(uint32_t)motor);temperature_value(t,selected_motor(c,now_ms),r,rl);break;
-    case 6: *ll="PEDAL";*rl="MOTOR";*lu="W";*ru="W";fmt_u32_5(l,c->runtime.pedal_power_w);fmt_u32_5(r,(uint32_t)motor);break;
+    case 6: *ll="PEDAL";*rl="MOTOR";*lu="W";*ru="W";
+        { uint16_t pedal;
+          if(dpc245_runtime_pedal_avg(&c->runtime,&pedal)){ uint32_t w=((uint32_t)pedal+2u)/5u*5u; if(w>9995u)w=9995u; fmt_u32_5(l,w); }
+          else{l[0]='-';l[1]='-';l[2]=0;} }
+        fmt_u32_5(r,(uint32_t)motor);break;
     case 7: *ll="RANGE";*rl="VOLT";*lu=distance_unit(c);*ru="V";if(!t->have_range||t->range_centi_km==0xFFFFu){l[0]='-';l[1]='-';l[2]='.';l[3]='-';l[4]=0;}else fmt_x100_5(l,display_metric(c,t->range_centi_km));if(t->have_voltage)fmt_x100_5(r,t->voltage_centi_volt);else{r[0]='-';r[1]='-';r[2]='.';r[3]='-';r[4]=0;}break;
     case 8: *ll="VOLT";*lu="V";*ru="C";if(t->have_voltage)fmt_x100_5(l,t->voltage_centi_volt);else{l[0]='-';l[1]='-';l[2]='.';l[3]='-';l[4]=0;}temperature_value(t,selected_motor(c,now_ms),r,rl);break;
     default:
@@ -1099,11 +1103,14 @@ static void draw_adv_diag(const dpc245_app_t *c,const evist_can_router_t *r,uint
         else if(c->start_angle_status==4u)value_text(130,"START ANGLE","ERROR");
         else value_text(130,"START ANGLE","--");
     }else if(page==1u){
-        value_u32(30,"TORQUE RAW",t->torque_sensor_raw,0);
-        value_u32(50,"TORQUE MV",t->torque_signal_mv,"MV");
-        value_u32(70,"CADENCE",t->torque_sensor_cadence_rpm?t->torque_sensor_cadence_rpm:t->cadence_rpm,"RPM");
-        value_i32(90,"POWER",bafang_power_w(t),"W");
-        diag_i32(110,"CTRL TEMP",t->have_controller_temp&&bafang_temperature_raw_valid(t->controller_temp_raw),t->controller_temp_c,"C");
+        value_u32(28,"TORQUE RAW",t->torque_sensor_raw,0);
+        value_u32(45,"TORQUE MV",t->torque_signal_mv,"MV");
+        value_u32(62,"CADENCE",t->torque_sensor_cadence_rpm?t->torque_sensor_cadence_rpm:t->cadence_rpm,"RPM");
+        value_i32(79,"POWER",bafang_power_w(t),"W");
+        { uint16_t pedal;
+          if(dpc245_runtime_pedal_avg(&c->runtime,&pedal))value_u32(96,"PEDAL W",pedal,"W");
+          else value_text(96,"PEDAL W","--"); }
+        diag_i32(113,"CTRL TEMP",t->have_controller_temp&&bafang_temperature_raw_valid(t->controller_temp_raw),t->controller_temp_c,"C");
         diag_i32(130,"MOTOR TEMP",t->have_motor_temp&&bafang_temperature_raw_valid(t->controller_aux_temp_raw),t->motor_temp_c,"C");
     }else if(page==2u){
         /* Seven rows fit between the title and footer. */
