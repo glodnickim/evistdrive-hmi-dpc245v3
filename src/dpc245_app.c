@@ -10,7 +10,8 @@ static const char *const display_menu[] = {
     "THEMES", "SERVICE TIPS", "AUTO OFF", "BACK"
 };
 static const char *const bike_menu[] = {
-    "ASSIST LEVELS", "ACCELERATION", "ASSIST PROFILE", "WHEEL", "RIDE MODE", "QUICK WALK", "BACK"
+    "ASSIST LEVELS", "ACCELERATION", "ASSIST PROFILE", "WHEEL", "RIDE MODE", "QUICK WALK",
+    "ASSIST MODES", "BACK"
 };
 static const char *const info_menu[] = {
     "HMI", "BATTERY", "CONTROLLER", "SENSOR", "ERRORS", "DIAGNOSTICS", "TRIP RESET", "BACK"
@@ -81,6 +82,38 @@ static uint8_t next_enabled_panel(const dpc245_app_t *c,uint8_t current){
     return 0u;
 }
 
+static bool assist_enabled(const dpc245_app_t *c,uint8_t level){
+    return level>=1u&&level<=EVIST_ASSIST_MODE_COUNT&&level<=c->assist_level_count&&
+        (c->preferences.assist_mode_mask&(uint8_t)(1u<<(level-1u)))!=0u;
+}
+
+static uint8_t cycle_enabled_assist(const dpc245_app_t *c, bool up){
+    uint8_t limit=c->assist_level_count<EVIST_ASSIST_MODE_COUNT?
+        c->assist_level_count:EVIST_ASSIST_MODE_COUNT;
+    if(limit==0u)return 0u;
+    uint8_t level=c->assist_level;
+    if(!up&&level==0u)return 0u;
+    for(uint8_t n=0u;n<limit;++n){
+        level=up?(uint8_t)(level>=limit?1u:level+1u):
+            (uint8_t)(level<=1u?0u:level-1u);
+        if(level==0u)return 0u;
+        if(assist_enabled(c,level))return level;
+    }
+    return up?0u:level;
+}
+
+static void reconcile_selected_assist(dpc245_app_t *c){
+    if(c->assist_level>c->assist_level_count||
+       (c->assist_level!=0u&&!assist_enabled(c,c->assist_level))){
+        c->assist_level=0u;
+        c->walk_armed=c->walk_active=c->walk=false;
+        c->walk_quick=false;
+        c->walk_hold_latched=false;
+        c->walk_deadline_ms=0u;
+    }
+    c->preferences.assist_level=c->assist_level;
+}
+
 static bool value_edit_active(const dpc245_app_t *c) {
     if (c->screen == DPC245_APP_SCREEN_ADVANCED) return c->advanced.edit;
     return c->screen == DPC245_APP_SCREEN_EDIT_UNIT ||
@@ -105,6 +138,7 @@ static bool value_edit_repeatable(const dpc245_app_t *c) {
     case EVIST_ADV_FIRMWARE:
     case EVIST_ADV_PANELS:
     case EVIST_ADV_BATTERY:
+    case EVIST_ADV_MODES:
         return false;
     case EVIST_ADV_LIGHT:
         return c->advanced.cursor != 0u;
@@ -188,7 +222,8 @@ void dpc245_app_init(dpc245_app_t *c,
 void dpc245_app_apply_preferences(dpc245_app_t *c,const evist_preferences_t *prefs) {
     if(!c||!prefs||!evist_preferences_validate(prefs))return;
     c->preferences=*prefs;
-    c->assist_level=prefs->assist_level<=c->assist_level_count?prefs->assist_level:0u;
+    c->assist_level=prefs->assist_level;
+    reconcile_selected_assist(c);
     if((c->preferences.panel_mask&(uint16_t)(1u<<c->preferences.lower_panel))==0u)
         c->preferences.lower_panel=next_enabled_panel(c,c->preferences.lower_panel);
     evist_advanced_open(&c->advanced,&c->preferences,c->assist_level_count);
@@ -279,6 +314,7 @@ void dpc245_app_key(dpc245_app_t *c, dpc245_app_key_t key) {
         evist_preferences_t p;
         if (evist_advanced_take_preferences(&c->advanced,&p)) {
             c->preferences=p;
+            reconcile_selected_assist(c);
             if((c->preferences.panel_mask&(uint16_t)(1u<<c->preferences.lower_panel))==0u)
                 c->preferences.lower_panel=next_enabled_panel(c,c->preferences.lower_panel);
             c->preferences_dirty=true;
@@ -289,16 +325,17 @@ void dpc245_app_key(dpc245_app_t *c, dpc245_app_key_t key) {
     }
 
     if (c->screen == DPC245_APP_SCREEN_DASHBOARD) {
-        if (key == DPC245_APP_KEY_UP && c->assist_level < c->assist_level_count) {
-            c->assist_level++;
-            c->preferences.assist_level=c->assist_level;
-            c->preferences_dirty=true;
-            c->walk_armed = c->walk_active = c->walk = false;
-            c->walk_hold_latched = false;
-        } else if (key == DPC245_APP_KEY_DOWN && c->assist_level > 0u) {
-            c->assist_level--;
-            c->preferences.assist_level=c->assist_level;
-            c->preferences_dirty=true;
+        if (key == DPC245_APP_KEY_UP || key == DPC245_APP_KEY_DOWN) {
+            uint8_t next=cycle_enabled_assist(c,key==DPC245_APP_KEY_UP);
+            /* The established UP, DOWN, UP ride-mode chord passes through OFF. */
+            if(key==DPC245_APP_KEY_DOWN&&c->ride_combo_step==2u)next=0u;
+            if(next!=c->assist_level){
+                c->assist_level=next;
+                c->preferences.assist_level=next;
+                c->preferences_dirty=true;
+                c->walk_armed=c->walk_active=c->walk=false;
+                c->walk_hold_latched=false;
+            }
         } else if (key == DPC245_APP_KEY_POWER) {
             c->preferences.lower_panel=next_enabled_panel(c,c->preferences.lower_panel);
             c->preferences_dirty=true;
@@ -348,6 +385,7 @@ void dpc245_app_key(dpc245_app_t *c, dpc245_app_key_t key) {
             case 3: open_advanced(c, EVIST_ADV_WHEEL); return;
             case 4: open_advanced(c, EVIST_ADV_MODE); return;
             case 5: open_advanced(c, EVIST_ADV_QUICK_WALK); return;
+            case 6: open_advanced(c, EVIST_ADV_MODES); return;
             default: c->screen=DPC245_APP_SCREEN_ROOT_MENU; c->selection=1u; return;
             }
         }

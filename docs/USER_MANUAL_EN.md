@@ -4,7 +4,7 @@
 
 **Documentation version:** Draft 1.0, October 15, 2026
 
-**Reference firmware:** EVistDrive HMI **10.24**, tag `v10.24` of `glodnickim/evistdrive-hmi-dpc245v3`, inspected October 21, 2026
+**Reference firmware:** EVistDrive HMI **10.25**, development candidate awaiting device testing.
 
 **Interface language:** English. This manual preserves the exact option names displayed on the device.
 
@@ -166,6 +166,7 @@ SETTING
 │   ├── WHEEL
 │   ├── RIDE MODE
 │   ├── QUICK WALK
+│   ├── ASSIST MODES
 │   └── BACK
 ├── INFORMATION
 │   ├── HMI
@@ -283,13 +284,13 @@ Changes in this section may be written **to the motor controller over CAN**, rat
 
 ### 6.1. `ASSIST LEVELS` – assistance levels
 
-The submenu reads the controller's assistance table and exposes fields for successive levels:
+The submenu reads the controller's assistance table and shows two fields for each enabled E, T, S, S+ or B mode, in that order:
 
-- `L1 POWER%`, `L2 POWER%`, etc. — a percentage-based current/power limit in the controller's table (the exact interpretation depends on motor firmware).
-- `L1 SPEED%`, `L2 SPEED%`, etc. — the second table column in the `BAFANG` profile.
-- `L1 ASSIST%`, `L2 ASSIST%`, etc. — the same second table column in the `FAKE TAXI` profile, with different semantics.
+- `E POWER%`, `T POWER%`, etc. — a percentage-based current/power limit in the controller's table (the exact interpretation depends on motor firmware).
+- `E SPEED%`, `T SPEED%`, etc. — the second table column in the `BAFANG` profile.
+- `E ASSIST%`, `T ASSIST%`, etc. — the same second table column in the `FAKE TAXI` profile, with different semantics.
 
-The menu displays up to five levels at once. Mapping to the controller's physical table entries accounts for the configured number of levels (3, 5 or 9). Column values can be edited from **0 to 100%**. After editing, select `SAVE` to send the full settings block to the controller and verify the returned data.
+With five levels, E, T, S, S+ and B map to controller table slots 1, 3, 5, 7 and 8 (zero based). The list is independent of the current riding mode, including assistance OFF. For example, with E, S and B enabled, it shows six value rows followed by `SAVE` and `BACK`. If every mode is disabled, it shows `NO MODES ON` and only `SAVE` and `BACK`. Column values can be edited from **0 to 100%**. After editing, select `SAVE` to send the full settings block to the controller and verify the returned data.
 
 In the `BAFANG` profile, the firmware enforces non-decreasing values across consecutive levels: higher levels cannot arbitrarily be configured below lower ones. The `FAKE TAXI` profile does not enforce this ordering. `BACK` discards unsaved edits.
 
@@ -366,9 +367,15 @@ This shortcut changes the mode **for the current session**; it does not automati
 | `HOLD` | Time `DOWN` must be held before activation | 0.5–5.0 s, step 0.5 s |
 | `SAVE` / `BACK` | Save / cancel | — |
 
-**Defaults:** `ENABLE = OFF`, `HOLD = 2.0 s`.
+**Defaults:** `ENABLE = ON`, `HOLD = 0.5 s`.
 
 Once activated, `DOWN` must remain held: releasing it stops the Walk request. Actual movement depends on the controller and physical button signal. See [section 2.1](#21-walk-assist--pushing-the-bicycle).
+
+### 6.7. `ASSIST MODES` – enabled modes
+
+The five E, T, S, S+ and B rows each have an independent `ON`/`OFF` switch. Select `SAVE` after editing. On the riding screen, `UP` skips disabled modes and wraps from the highest enabled mode to the lowest. `DOWN` moves through enabled modes toward `ASSIST OFF` below the lowest. If every mode is disabled, assistance stays OFF. Saving a change that disables the currently selected mode sets assistance to OFF.
+
+![Assistance mode switches](images/assist_modes.png)
 
 ## 7. INFORMATION – data and diagnostics
 
@@ -545,7 +552,7 @@ This manual was developed primarily from the actual UI labels, button handling a
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – technical project documentation;
 - `README.md` – release and version information.
 
-**Version note:** the current version (**10.24**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
+**Version note:** the current version (**10.25**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
 
 **Before marking this manual as verified:** The project maintainer should compare this manual with the current `HEAD`, resolve inconsistencies and generate/verify simulator screenshots. In particular, the following require physical hardware verification: `AUTO OFF` behavior, the direction of the `ACCELERATION` scale, how `BACKLIGHT → LEVEL` affects actual brightness, details of Standard Walk operation, and successful application of RIDE settings with a specific controller. Do not present these as hardware-verified facts until they have been tested.
 

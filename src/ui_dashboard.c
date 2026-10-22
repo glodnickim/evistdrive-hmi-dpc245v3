@@ -5,6 +5,7 @@
 #include "st7789_8080.h"
 #include "boot_splash.h"
 #include "ui_font1.h"
+#include "ui_arc_geometry.h"
 #include "dpc245_settings.h"
 #include "bafang_can.h"
 #include "assist_profile.h"
@@ -21,7 +22,7 @@ static bool g_menu_screen;
 #define DASH_BG    0x0000u
 #define DASH_GREEN 0x3E47u
 #define TEMP_WARN_RED 0xF800u
-#define RIDE_OFFROAD_COL 0xFD20u  /* orange ring around the mode frame */
+#define RIDE_OFFROAD_COL ARC_FRAME_OFFROAD_COL  /* orange ring around the mode frame */
 static const uint16_t mode_frame_colours[6] = {
     0x8410u, /* 0: neutral grey */
     0x26CDu, /* E: green */
@@ -641,16 +642,37 @@ static void arc_tile(bool bottom,const char *label,const char *value,const char 
     theme_right_text(value,&ui_font1_small,316u,bottom?141:59,0x3186u);
     theme_right_text(unit,&ui_font1_dashboard,316u,bottom?160:76,0x3186u);
 }
+/* Each ARC digit cell clears only its own area inside the fixed frame. */
+static void arc_speed_cell(const ui_font1_t *font,char digit,uint16_t x,uint16_t width,uint16_t colour){
+    dpc245_lcd_fill_rect(x,ARC_CELL_TOP,width,ARC_CELL_BOTTOM-ARC_CELL_TOP+1u,BLACK);
+    if(digit)theme_speed_cell(font,digit,x,width,ARC_SPEED_BASE,colour);
+}
 static void theme_speed_arc(const dpc245_app_t *c,const bafang_telemetry_t *t){
     uint32_t tenth=t->have_speed?display_metric(c,t->speed_centi_kph)/10u:0u;
     uint32_t whole=tenth/10u;if(whole>99u)whole=99u;
     uint16_t colour=c->temp_warning_sources?TEMP_WARN_RED:WHITE;
-    /* Smaller digits (speed_small), shifted right so they don't crowd the power arc. */
-    if(whole>=10u)theme_speed_cell(&ui_font1_speed_small,(char)('0'+whole/10u),45u,66u,128,colour);
-    theme_speed_cell(&ui_font1_speed_small,(char)('0'+whole%10u),111u,66u,128,colour);
-    ui_font1_text_clipped(&ui_font1_speed_small,177u,128,".",colour,BLACK,177u,189u);
-    theme_speed_cell(&ui_font1_speed_small,(char)('0'+tenth%10u),190u,30u,128,colour);
-    ui_font1_text(&ui_font1_small,185u,69,dash_speed_unit(c,true),WHITE,BLACK);
+    arc_speed_cell(&ui_font1_arc_integer,whole>=10u?(char)('0'+whole/10u):0,ARC_DIGIT_X,ARC_DIGIT_W,colour);
+    arc_speed_cell(&ui_font1_arc_integer,(char)('0'+whole%10u),ARC_DIGIT_X+ARC_DIGIT_W,ARC_DIGIT_W,colour);
+    dpc245_lcd_fill_rect(ARC_DIGIT_X+2u*ARC_DIGIT_W,ARC_CELL_TOP,ARC_DOT_W,ARC_CELL_BOTTOM-ARC_CELL_TOP+1u,BLACK);
+    ui_font1_text_clipped(&ui_font1_arc_tenth,ARC_DIGIT_X+2u*ARC_DIGIT_W,ARC_SPEED_BASE,".",colour,BLACK,
+                          ARC_DIGIT_X+2u*ARC_DIGIT_W,ARC_DIGIT_X+2u*ARC_DIGIT_W+ARC_DOT_W-1u);
+    arc_speed_cell(&ui_font1_arc_tenth,(char)('0'+tenth%10u),ARC_DIGIT_X+2u*ARC_DIGIT_W+ARC_DOT_W,ARC_TENTH_W,colour);
+    const char *unit=dash_speed_unit(c,true);
+    ui_font1_text(&ui_font1_small,(uint16_t)(ARC_UNIT_RIGHT-ui_font1_width(&ui_font1_small,unit)),ARC_UNIT_BASE,unit,WHITE,BLACK);
+}
+/* The power arc, tiles and battery keep clear of the speed frame. */
+static void theme_arc_speed_frame(bool offroad){
+    uint16_t colour=offroad?ARC_FRAME_OFFROAD_COL:ARC_FRAME_LEGAL_COL;
+    dpc245_lcd_fill_rect(ARC_FRAME_LEFT+ARC_FRAME_W-1u,ARC_FRAME_TOP,ARC_FRAME_RIGHT-ARC_FRAME_LEFT-1u,ARC_FRAME_W,colour);
+    dpc245_lcd_fill_rect(ARC_FRAME_LEFT+ARC_FRAME_W-1u,ARC_FRAME_BOTTOM-ARC_FRAME_W+1u,
+                         ARC_FRAME_RIGHT-ARC_FRAME_LEFT-1u,ARC_FRAME_W,colour);
+    dpc245_lcd_fill_rect(ARC_FRAME_LEFT,ARC_FRAME_TOP+ARC_FRAME_W-1u,ARC_FRAME_W,
+                         ARC_FRAME_BOTTOM-ARC_FRAME_TOP-ARC_FRAME_W,colour);
+    for(uint16_t y=ARC_FRAME_TOP+1u;y<=ARC_FRAME_MID;y++){
+        uint16_t x=(uint16_t)(ARC_FRAME_RIGHT+(y-ARC_FRAME_TOP)* (ARC_FRAME_TIP-ARC_FRAME_RIGHT)/(ARC_FRAME_MID-ARC_FRAME_TOP));
+        dpc245_lcd_fill_rect(x-ARC_FRAME_W+1u,y,ARC_FRAME_W,1u,colour);
+        dpc245_lcd_fill_rect(x-ARC_FRAME_W+1u,(uint16_t)(ARC_FRAME_TOP+ARC_FRAME_BOTTOM-y),ARC_FRAME_W,1u,colour);
+    }
 }
 static void theme_status(const dpc245_ui_status_t *s,bool wedge){
     if(!s)return;
@@ -683,7 +705,7 @@ static void draw_arc(const dpc245_app_t *c,const evist_can_router_t *r,const dpc
     }
     theme_status(status,false);
     ui_font1_text(&ui_font1_title,31u,17,theme_mode_name(c),theme_mode_colour(c,t,now_ms),BLACK);
-    /* Orange frame removed: its left edge covered the power arc and looked oversized. */
+    theme_arc_speed_frame(c->ride_indicator==DPC245_RIDE_IND_OFFROAD);
     theme_speed_arc(c,t);
     char left[6],right[6];const char *ll,*rl,*lu,*ru;
     theme_pair(c,t,now_ms,left,right,&ll,&rl,&lu,&ru);
@@ -978,7 +1000,7 @@ static void draw_adv_wheel(const evist_advanced_t *a){
     if(a->wheel_dirty)m_text(270u,10u,"EDIT",0xFFE0u,BLACK,1u);
     adv_status_or_footer(a,a->edit?"UP/DN VALUE  POWER DONE":"POWER SELECT");
 }
-/* Five visible rows: value cells two per level, then SAVE and BACK. */
+/* Enabled modes have two value rows each, then SAVE and BACK. */
 static void draw_adv_assist(const evist_advanced_t *a){
     uint8_t cells=evist_advanced_assist_cells(a),rows=(uint8_t)(cells+2u);
     uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;if(rows>5u&&top+5u>rows)top=(uint8_t)(rows-5u);
@@ -988,12 +1010,17 @@ static void draw_adv_assist(const evist_advanced_t *a){
         else if(idx==cells+1u){name[0]='B';name[1]='A';name[2]='C';name[3]='K';val="";}
         else{
             const char *col=(idx&1u)?(a->committed.firmware_profile==EVIST_PROFILE_FAKE_TAXI?" ASSIST%":" SPEED%"):" POWER%";
-            unsigned n=0u;name[n++]='L';name[n++]=(char)('1'+idx/2u);
+            static const char *const modes[EVIST_ASSIST_MODE_COUNT]={"E","T","S","S+","B"};
+            uint8_t level=evist_advanced_assist_cell_level(a,idx);
+            unsigned n=0u;
+            if(level>=1u&&level<=EVIST_ASSIST_MODE_COUNT)
+                for(const char *p=modes[level-1u];*p&&n<sizeof(name)-1u;++p)name[n++]=*p;
             for(unsigned k=0u;col[k]&&n<sizeof(name)-1u;k++)name[n++]=col[k];
             if(a->assist_valid)adv_u16(v,evist_advanced_assist_cell_value(a,idx));else val="--";
         }
         adv_row((uint16_t)(42u+row*22u),name,val,idx==a->cursor,a->edit&&idx==a->cursor);
     }
+    if(cells==0u)m_text(8u,104u,"NO MODES ON",DIM,BLACK,1u);
     if(a->assist_dirty)m_text(270u,10u,"EDIT",0xFFE0u,BLACK,1u);
     adv_status_or_footer(a,a->edit?"UP/DN VALUE  POWER DONE":"POWER SELECT");
 }
@@ -1240,7 +1267,8 @@ static void draw_advanced(const dpc245_app_t *c,const evist_can_router_t *r,uint
         (void)ui_font1_text(&ui_font1_menu,x,37," / 16",DIM,BLACK);
     }
     if(a->screen==EVIST_ADV_MENU){
-        uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;if(top+5u>12u)top=7u;
+        uint8_t count=(uint8_t)evist_advanced_row_count(a);
+        uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;if(top+5u>count)top=(uint8_t)(count-5u);
         for(uint8_t row=0u;row<5u;++row){uint8_t idx=(uint8_t)(top+row);adv_row((uint16_t)(42u+row*22u),evist_advanced_menu_label(idx),0,idx==a->cursor,false);}
         footer("UP/DN  POWER SELECT");return;
     }
@@ -1297,6 +1325,11 @@ static void draw_advanced(const dpc245_app_t *c,const evist_can_router_t *r,uint
             break;
         case EVIST_ADV_QUICK_WALK:
             if(idx==0u){name="ENABLE";val=a->working.quick_walk_enabled?"ON":"OFF";}else{name="HOLD";uint16_t x=(uint16_t)a->working.quick_walk_hold_steps*5u;v[0]=(char)('0'+x/10u);v[1]='.';v[2]=(char)('0'+x%10u);v[3]='S';v[4]=0;}break;
+        case EVIST_ADV_MODES:{
+            static const char *const modes[EVIST_ASSIST_MODE_COUNT]={"E","T","S","S+","B"};
+            name=modes[idx];val=(a->working.assist_mode_mask&(uint8_t)(1u<<idx))?"ON":"OFF";
+            break;
+        }
         case EVIST_ADV_MODE:
             if(idx==0u){name="DEFAULT";val=a->ride_working.mode==EVIST_RIDE_OFFROAD?"OFFROAD":"LEGAL";}
             else if(idx==1u){name="AFTER START";val=a->ride_working.start==EVIST_RIDE_START_LAST?"LAST":

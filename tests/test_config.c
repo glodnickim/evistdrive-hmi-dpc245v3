@@ -510,19 +510,35 @@ static void test_advanced_buffers(void) {
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
     check(a.screen == EVIST_ADV_MENU, "BACK returns to menu");
 
-    /* ASSIST: edit kept across cells and verified after SAVE. */
+    /* ASSIST lists enabled modes even while riding is OFF. */
+    prefs.assist_level = 0u;
+    a.working.assist_level = 0u;
+    a.working.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 2u) | (1u << 4u));
     evist_advanced_key(&a, EVIST_ADV_KEY_DOWN);
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);               /* open ASSIST -> READ */
     sim_run(&s, &a, 1000u);
-    check(a.assist_valid && evist_advanced_assist_cells(&a) == 10u, "ASSIST loaded, 5 levels x 2");
+    check(a.assist_valid && evist_advanced_assist_cells(&a) == 6u, "ASSIST loaded, enabled modes x 2");
     check(evist_advanced_assist_cell_value(&a, 0u) == 25u, "L1 POWER = slot 1");
+    check(evist_advanced_assist_cell_level(&a, 2u) == 3u && evist_advanced_assist_cell_level(&a, 4u) == 5u,
+          "ASSIST E, S, B cell mapping");
+    check(evist_advanced_assist_cell_value(&a, 2u) == 45u && evist_advanced_assist_cell_value(&a, 4u) == 60u,
+          "ASSIST S and B read their own slots");
+    a.cursor = 2u;
+    evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
+    evist_advanced_key(&a, EVIST_ADV_KEY_UP);
+    check(evist_advanced_assist_cell_value(&a, 2u) == 46u &&
+          evist_advanced_assist_cell_value(&a, 0u) == 25u &&
+          evist_advanced_assist_cell_value(&a, 4u) == 60u, "ASSIST S edit changes only S visible slot");
+    evist_advanced_key(&a, EVIST_ADV_KEY_DOWN);
+    evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
+    a.cursor = 0u;
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);               /* edit L1 POWER */
     evist_advanced_key(&a, EVIST_ADV_KEY_UP);
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);               /* done -> L1 SPEED */
     check(a.cursor == 1u, "POWER moves to the next cell");
     sim_run(&s, &a, 500u);
     check(evist_advanced_assist_cell_value(&a, 0u) == 26u && a.assist_dirty, "ASSIST retains edit until SAVE");
-    a.cursor = 10u;                                            /* SAVE */
+    a.cursor = evist_advanced_assist_cells(&a);                 /* SAVE */
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
     sim_run(&s, &a, 3000u);
     check(s.assist[EVIST_ASSIST_POWER_OFF + 1u] == 26u && s.assist[63] == evist_assist_checksum(s.assist), "controller received edited block");

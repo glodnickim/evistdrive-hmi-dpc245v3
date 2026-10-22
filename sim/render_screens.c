@@ -13,6 +13,7 @@
 #include "dpc245_hwinfo.h"
 #include "dpc245_adc.h"
 #include "st7789_8080.h"
+#include "ui_arc_geometry.h"
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
@@ -31,6 +32,7 @@ typedef struct { int x0, y0, x1, y1; unsigned skipped; } box_t;
 static box_t boxes[256];
 static unsigned box_count;
 static unsigned layout_issues;
+static unsigned arc_frame_colours_seen;
 static int check_dashboard_zones;
 static int check_lower_separator = 1;
 static int check_badge_geometry;
@@ -65,9 +67,73 @@ static void trace_speed_cells(int units_x0,int dot_x,int tenths_x0,int tens_x0,
     else assert(memcmp(speed_cell_baseline,current,sizeof(current))==0);
     speed_cell_frames++;speed_cell_seen++;
 }
+static void arc_frame_pixel(const char *name,unsigned x,unsigned y,uint16_t expected){
+    if(sim_fb[y][x]!=expected){
+        printf("LAYOUT %s: arc frame pixel %u,%u is %04X, expected %04X\n",
+               name,x,y,sim_fb[y][x],expected);
+        layout_issues++;
+    }
+}
+static void check_arc_frame(const char *name,uint16_t colour){
+    const unsigned middle=(ARC_FRAME_TOP+ARC_FRAME_BOTTOM)/2u;
+    for(unsigned i=0u;i<ARC_FRAME_W;i++){
+        arc_frame_pixel(name,100u,ARC_FRAME_TOP+i,colour);
+        arc_frame_pixel(name,100u,ARC_FRAME_BOTTOM-i,colour);
+        arc_frame_pixel(name,ARC_FRAME_LEFT+i,middle,colour);
+    }
+    arc_frame_pixel(name,100u,ARC_FRAME_TOP+ARC_FRAME_W,0u);
+    arc_frame_pixel(name,100u,ARC_FRAME_BOTTOM-ARC_FRAME_W,0u);
+    arc_frame_pixel(name,ARC_FRAME_LEFT+ARC_FRAME_W,middle,0u);
+    for(unsigned y=ARC_FRAME_TOP+20u;y<=ARC_FRAME_TOP+40u;y+=20u){
+        unsigned x=ARC_FRAME_RIGHT+(y-ARC_FRAME_TOP)*(ARC_FRAME_TIP-ARC_FRAME_RIGHT)/(ARC_FRAME_MID-ARC_FRAME_TOP);
+        for(unsigned i=0u;i<ARC_FRAME_W;i++){
+            arc_frame_pixel(name,x-i,y,colour);
+            arc_frame_pixel(name,x-i,ARC_FRAME_TOP+ARC_FRAME_BOTTOM-y,colour);
+        }
+        arc_frame_pixel(name,x-ARC_FRAME_W,y,0u);
+        arc_frame_pixel(name,x-ARC_FRAME_W,ARC_FRAME_TOP+ARC_FRAME_BOTTOM-y,0u);
+    }
+    unsigned speed_glyphs=0u;
+    const box_t *unit=0,*tenth=0;
+    for(unsigned i=0u;i<box_count;i++){
+        const box_t *b=&boxes[i];
+        if(b->x0<(int)ARC_FRAME_LEFT||b->x1>(int)ARC_FRAME_TIP||
+           b->y0<(int)ARC_FRAME_TOP||b->y1>(int)ARC_FRAME_BOTTOM)continue;
+        speed_glyphs++;
+        if(b->y1<(int)ARC_CELL_TOP)unit=b;
+        if(b->x0>=(int)(ARC_DIGIT_X+2u*ARC_DIGIT_W+ARC_DOT_W)&&
+           b->y0>=(int)ARC_CELL_TOP)tenth=b;
+        int gap=b->x0-(int)(ARC_FRAME_LEFT+ARC_FRAME_W-1u)-1;
+        int top=b->y0-(int)(ARC_FRAME_TOP+ARC_FRAME_W-1u)-1;
+        int bottom=(int)(ARC_FRAME_BOTTOM-ARC_FRAME_W+1u)-b->y1-1;
+        if(top<gap)gap=top;if(bottom<gap)gap=bottom;
+        for(int y=b->y0;y<=b->y1;y++){
+            unsigned edge_y=(unsigned)y<=ARC_FRAME_MID?(unsigned)y:ARC_FRAME_TOP+ARC_FRAME_BOTTOM-(unsigned)y;
+            unsigned x=ARC_FRAME_RIGHT+(edge_y-ARC_FRAME_TOP)*(ARC_FRAME_TIP-ARC_FRAME_RIGHT)/(ARC_FRAME_MID-ARC_FRAME_TOP);
+            int right=(int)(x-ARC_FRAME_W+1u)-b->x1-1;
+            if(right<gap)gap=right;
+        }
+        if(gap<3){
+            printf("LAYOUT %s: arc speed ink %d,%d-%d,%d has only %d px frame clearance\n",
+                   name,b->x0,b->y0,b->x1,b->y1,gap);
+            layout_issues++;
+        }
+    }
+    if(speed_glyphs<4u){printf("LAYOUT %s: arc speed glyphs missing\n",name);layout_issues++;}
+    if(!unit||!tenth||unit->y1>=tenth->y0||
+       unit->x1<(int)ARC_UNIT_RIGHT-3||unit->x1>=(int)ARC_UNIT_RIGHT){
+        printf("LAYOUT %s: arc unit must sit above and align with the tenth column\n",name);
+        layout_issues++;
+    }
+}
 static void check_layout(const char *name) {
     printf("%-20s %3u strings checked\n", name, box_count);
     uint8_t theme=layout_app?dpc245_theme(&layout_app->runtime.settings):0u;
+    if(check_dashboard_zones&&theme==DPC245_THEME_ARC){
+        int offroad=layout_app->ride_indicator==DPC245_RIDE_IND_OFFROAD;
+        arc_frame_colours_seen|=offroad?2u:1u;
+        check_arc_frame(name,offroad?ARC_FRAME_OFFROAD_COL:ARC_FRAME_LEGAL_COL);
+    }
     int warning_banner=layout_app && layout_app->temp_warning_sources &&
         !layout_app->ride_confirm_pending && !layout_app->ride_toast_active &&
         layout_app->ride_apply_result!=EVIST_RIDE_APPLY_FAILED;
@@ -185,13 +251,7 @@ static void check_layout(const char *name) {
                            name,a->x0,a->y0,a->x1,a->y1);layout_issues++;
                 }
             }
-            if(theme==DPC245_THEME_ARC && a->x0>=30 && a->x1<=220 && a->y0>=28 && a->y1<=130){
-                int tip=a->y1<=79?209+(a->y1-25)/2:209+(133-a->y1)/2;
-                if(a->y0<28 || a->y1>130 || tip-a->x1<3){
-                    printf("LAYOUT %s: arc speed ink lacks 3 px frame clearance in box %d,%d-%d,%d\n",
-                           name,a->x0,a->y0,a->x1,a->y1);layout_issues++;
-                }
-            }
+            /* The speed ink and frame are checked together above. */
             if(theme==DPC245_THEME_WEDGE && a->x0>=250 && a->x1<=318){
                 if(a->x0<252 || a->x1>315 || (a->y0<=79 && a->y1>=78) || a->y0<12 || a->y1>139){
                     printf("LAYOUT %s: wedge tile ink lacks 3 px margin in box %d,%d-%d,%d\n",
@@ -989,6 +1049,7 @@ int main(int argc, char **argv) {
 
     ui_boot_splash_draw();
     dump("14_boot_splash");
+    if(arc_frame_colours_seen!=3u){printf("LAYOUT: both ARC frame colours were not checked\n");layout_issues++;}
     printf("layout issues: %u\n", layout_issues);
     return layout_issues ? 1 : 0;
 }

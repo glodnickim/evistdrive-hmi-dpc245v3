@@ -9,6 +9,8 @@
 #define EVIST_PANEL_COUNT 10u
 #define EVIST_BASE_PANEL_COUNT 9u
 #define EVIST_PANEL_MASK_ALL 0x03FFu
+#define EVIST_ASSIST_MODE_COUNT 5u
+#define EVIST_ASSIST_MODE_MASK_ALL 0x1Fu
 
 typedef enum {
     EVIST_TEMP_BOTH = 0,
@@ -38,6 +40,7 @@ typedef enum {
 
 typedef struct {
     uint8_t assist_level;       /* 0..9 */
+    uint8_t assist_mode_mask;   /* bits 0..4: enabled E, T, S, S+, B levels */
     uint8_t lower_panel;        /* 0..9 */
     evist_temp_view_t temp_view;
     uint8_t motor_temp_limit_c; /* 0=OFF, otherwise 40..150 C */

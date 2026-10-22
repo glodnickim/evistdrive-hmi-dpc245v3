@@ -248,7 +248,8 @@ int main(void) {
         {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_FIRMWARE},
         {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_WHEEL},
         {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_MODE},
-        {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_QUICK_WALK}
+        {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_QUICK_WALK},
+        {DPC245_APP_SCREEN_ADVANCED, EVIST_ADV_MODES}
     };
     static const leaf_t info[] = {
         {DPC245_APP_SCREEN_INFO_HMI, EVIST_ADV_MENU},
@@ -265,7 +266,7 @@ int main(void) {
         check_leaf(1u, i, DPC245_APP_SCREEN_BIKE_MENU, bike[i]);
     for (unsigned i = 0u; i < sizeof(info)/sizeof(info[0]); ++i)
         check_leaf(2u, i, DPC245_APP_SCREEN_INFO_MENU, info[i]);
-    puts("menu tree: 22 leaves, parent rows, branch BACK and root EXIT passed");
+    puts("menu tree: 23 leaves, parent rows, branch BACK and root EXIT passed");
 
     {
         dpc245_settings_t settings;

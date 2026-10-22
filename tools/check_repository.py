@@ -26,7 +26,7 @@ REQUIRED = [
 IMAGES = [
     'standard_dashboard', 'yellow_dashboard', 'arc_dashboard', 'wedge_dashboard',
     'main_menu', 'themes_page', 'temp_view_limits', 'overheat_warning',
-    'advanced_assist',
+    'advanced_assist', 'assist_modes',
 ]
 # Generated locally, never part of the repository; skipped by the scan.
 OUTPUT_DIRS = {'.git', 'build', 'dist', 'out'}

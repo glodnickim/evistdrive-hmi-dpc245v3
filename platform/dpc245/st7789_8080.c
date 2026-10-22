@@ -79,6 +79,11 @@ static void cmd_data(uint8_t c, const uint8_t *p, size_t n) {
     while (n--) dpc245_lcd_data8(*p++);
 }
 
+#define LCD_RESET_LOW_MS 5u
+#define LCD_RESET_RELEASE_MS 120u
+#define LCD_SLEEP_OUT_MS 10u
+#define LCD_DISPLAY_ON_MS 10u
+
 void dpc245_lcd_init(void (*delay_ms)(uint32_t)) {
     static const uint8_t madctl[]={0xA0}, colmod[]={0x05};
     static const uint8_t b2[]={0x0C,0x0C,0x00,0x33,0x33};
@@ -88,9 +93,9 @@ void dpc245_lcd_init(void (*delay_ms)(uint32_t)) {
     static const uint8_t e1[]={0xF0,0x07,0x0A,0x0D,0x0B,0x07,0x28,0x33,0x3E,0x36,0x14,0x14,0x29,0x32};
     if (!delay_ms) return;
     dpc245_lcd_bus_init();
-    pin_clr(GPIOB,DPC245_LCD_RST_PIN); delay_ms(100);
-    pin_set(GPIOB,DPC245_LCD_RST_PIN); delay_ms(100);
-    dpc245_lcd_command(0x11); delay_ms(120);
+    pin_clr(GPIOB,DPC245_LCD_RST_PIN); delay_ms(LCD_RESET_LOW_MS); /* Reset pulse exceeds the microsecond minimum. */
+    pin_set(GPIOB,DPC245_LCD_RST_PIN); delay_ms(LCD_RESET_RELEASE_MS); /* Warm reset can need 120 ms. */
+    dpc245_lcd_command(0x11); delay_ms(LCD_SLEEP_OUT_MS); /* Sleep Out needs 5 ms before another command. */
     cmd_data(0x36,madctl,sizeof madctl);
     cmd_data(0x3A,colmod,sizeof colmod);
     cmd_data(0xB2,b2,sizeof b2);
@@ -105,10 +110,8 @@ void dpc245_lcd_init(void (*delay_ms)(uint32_t)) {
     dpc245_lcd_command(0x21);
     cmd_data(0xE0,e0,sizeof e0);
     cmd_data(0xE1,e1,sizeof e1);
-    dpc245_lcd_command(0x11);
     dpc245_lcd_fill(0x0000);
-    delay_ms(120);
-    dpc245_lcd_command(0x29); delay_ms(100);
+    dpc245_lcd_command(0x29); delay_ms(LCD_DISPLAY_ON_MS); /* Display On needs no wait; keep a small margin. */
 }
 
 void dpc245_lcd_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {

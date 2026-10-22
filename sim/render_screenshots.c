@@ -2,7 +2,7 @@
 /* Selected public screenshots, rendered by the same UI code as make sim.
  * Usage: build/render_screenshots sim/out/screenshots
  * make screenshots compiles this file, converts its RGB565 frames to grid-free
- * 2x PNGs, and copies the nine named PNGs to docs/images/. */
+ * 2x PNGs, and copies the named PNGs to docs/images/. */
 
 #include "dpc245_app.h"
 #include "dpc245_settings.h"
@@ -126,6 +126,8 @@ int main(int argc, char **argv) {
     app.advanced.working.ctrl_temp_limit_c = 95u;
     app.advanced.cursor = 3u;
     if (!save_frame("temp_view_limits", 1000u)) return 1;
+    app.preferences.assist_level = 1u;
+    app.preferences.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 3u) | (1u << 4u));
     evist_advanced_open(&app.advanced, &app.preferences, 5u);
     app.advanced.screen = EVIST_ADV_ASSIST;
     {
@@ -145,6 +147,11 @@ int main(int argc, char **argv) {
     }
     if (!save_frame("advanced_assist", 1000u)) return 1;
 
-    puts("screenshots: nine frames rendered");
+    evist_advanced_open(&app.advanced, &app.preferences, 5u);
+    app.advanced.screen = EVIST_ADV_MODES;
+    app.advanced.cursor = 3u;
+    if (!save_frame("assist_modes", 1000u)) return 1;
+
+    puts("screenshots: ten frames rendered");
     return 0;
 }

@@ -324,7 +324,7 @@ static void exercise_theme(uint8_t theme,bool slow,bool failure){
     dpc245_app_key(&app,DPC245_APP_KEY_DOWN);
     dpc245_app_key(&app,DPC245_APP_KEY_POWER);
     assert(app.screen==DPC245_APP_SCREEN_BIKE_MENU);
-    while(app.selection!=6u)dpc245_app_key(&app,DPC245_APP_KEY_DOWN);
+    while(app.selection!=7u)dpc245_app_key(&app,DPC245_APP_KEY_DOWN);
     dpc245_app_key(&app,DPC245_APP_KEY_POWER);
     assert(app.screen==DPC245_APP_SCREEN_ROOT_MENU);
     dpc245_app_key(&app,DPC245_APP_KEY_DOWN);

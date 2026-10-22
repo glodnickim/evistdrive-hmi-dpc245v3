@@ -817,7 +817,79 @@ static void test_temperature_screen_record(void) {
     puts("completed dashboard snapshot record passed");
 }
 
+static void assist_modes_ui_tests(void) {
+    evist_preferences_t prefs;
+    evist_preferences_defaults(&prefs);
+    assert(prefs.quick_walk_enabled && prefs.quick_walk_hold_steps == 1u);
+    assert(prefs.assist_mode_mask == EVIST_ASSIST_MODE_MASK_ALL);
+    prefs.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 3u) | (1u << 4u));
+    dpc245_settings_t settings;
+    dpc245_settings_defaults(&settings);
+    dpc245_app_t app;
+    dpc245_app_init(&app, &settings);
+    dpc245_app_apply_preferences(&app, &prefs);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 1u);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 4u);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 5u);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 1u);
+    dpc245_app_key(&app, DPC245_APP_KEY_DOWN);
+    assert(app.assist_level == 0u);
+    app.assist_level = 5u;
+    dpc245_app_key(&app, DPC245_APP_KEY_DOWN);
+    assert(app.assist_level == 4u);
+
+    evist_advanced_t adv;
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_MODES);
+    assert(evist_advanced_row_count(&adv) == 7u);
+    adv.cursor = 3u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    adv.cursor = 5u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    assert(evist_advanced_take_preferences(&adv, &prefs));
+    assert((prefs.assist_mode_mask & (1u << 3u)) == 0u);
+    prefs.assist_level = 4u;
+    dpc245_app_apply_preferences(&app, &prefs);
+    assert(app.assist_level == 0u);
+
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ASSIST);
+    assert(evist_advanced_assist_cells(&adv) == 4u);
+    prefs.assist_level = 5u;
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ASSIST);
+    assert(evist_advanced_assist_cells(&adv) == 4u);
+    assert(evist_advanced_assist_cell_level(&adv, 0u) == 1u);
+    assert(evist_advanced_assist_cell_level(&adv, 2u) == 5u);
+    assert(evist_advanced_assist_cell_level(&adv, 4u) == 0u);
+    prefs.assist_mode_mask = EVIST_ASSIST_MODE_MASK_ALL;
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ASSIST);
+    assert(evist_advanced_assist_cells(&adv) == 10u && evist_advanced_row_count(&adv) == 12u);
+    assert(evist_advanced_assist_cell_level(&adv, 8u) == 5u);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    assert(adv.cursor == 11u);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_DOWN);
+    assert(adv.cursor == 0u);
+    for (uint8_t i = 0u; i < EVIST_ASSIST_MODE_COUNT; ++i)
+        prefs.assist_mode_mask &= (uint8_t)~(1u << i);
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ASSIST);
+    assert(evist_advanced_assist_cells(&adv) == 0u && evist_advanced_row_count(&adv) == 2u);
+    dpc245_app_apply_preferences(&app, &prefs);
+    assert(app.assist_level == 0u);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 0u);
+}
+
 int main(void) {
+    assist_modes_ui_tests();
     test_temperature_warning();
     test_temperature_unavailable_bytes();
     test_temperature_live_diagnostics();
@@ -1827,7 +1899,7 @@ int main(void) {
         }
 
         evist_advanced_t adv;evist_advanced_open(&adv,&p2,5u);
-        assert(evist_advanced_row_count(&adv)==12u);
+        assert(evist_advanced_row_count(&adv)==13u);
         adv.screen=EVIST_ADV_BATTERY;
         assert(evist_advanced_row_count(&adv)==6u);
         {
@@ -1871,8 +1943,8 @@ int main(void) {
         evist_advanced_key(&adv,EVIST_ADV_KEY_POWER);
         assert(adv.screen==EVIST_ADV_MENU && !adv.exit_requested);
 
-        /* EXIT is the last menu row (index 11); it still requests leaving the page. */
-        adv.cursor=11u;evist_advanced_key(&adv,EVIST_ADV_KEY_POWER);
+        /* EXIT is the last menu row (index 12); it still requests leaving the page. */
+        adv.cursor=12u;evist_advanced_key(&adv,EVIST_ADV_KEY_POWER);
         assert(adv.exit_requested);
 
         /* LIGHT GAIN reaches the runtime before SAVE; BACK restores the committed value. */

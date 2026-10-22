@@ -87,6 +87,7 @@ static evist_native_result_t finish_job(evist_native_store_t *store){
 }
 static bool same_values(const evist_native_values_t *a,const evist_native_values_t *b){
     return a->preferences.assist_level==b->preferences.assist_level&&
+           a->preferences.assist_mode_mask==b->preferences.assist_mode_mask&&
            a->preferences.lower_panel==b->preferences.lower_panel&&
            a->preferences.light_gain==b->preferences.light_gain&&
            a->preferences.temp_view==b->preferences.temp_view&&
@@ -111,6 +112,7 @@ static void test_many_saves(void){
     first_record(&store,&value);
     for(unsigned i=0u;i<3000u;++i){
         value.preferences.assist_level=(uint8_t)(i%10u);
+        value.preferences.assist_mode_mask=(uint8_t)(i&EVIST_ASSIST_MODE_MASK_ALL);
         value.preferences.light_gain=(uint8_t)(1u+i%9u);
         dpc245_set_u32_le(&value.hmi,DPC245_OFS_TRIP_DISTANCE_RAW,i*10u);
         check(evist_native_store_begin(&store,&value),"many begin");
@@ -323,6 +325,7 @@ static void check_reset_values(const evist_native_values_t *before,
     defaults.ride=evist_ride_defaults();
     const evist_preferences_t *p=&after->preferences,*d=&defaults.preferences;
     check(p->assist_level==d->assist_level&&p->lower_panel==d->lower_panel&&
+          p->assist_mode_mask==d->assist_mode_mask&&
           p->temp_view==d->temp_view&&p->motor_temp_limit_c==d->motor_temp_limit_c&&
           p->ctrl_temp_limit_c==d->ctrl_temp_limit_c&&
           p->firmware_profile==d->firmware_profile&&p->graph_scale_w==d->graph_scale_w&&

@@ -3,16 +3,17 @@
 #include "assist_profile.h"
 #include "app_config.h"
 
-#define MENU_ITEMS 12u
-#define MENU_EXIT  11u
+#define MENU_ITEMS 13u
+#define MENU_EXIT  12u
 
 static const char *const menu_items[MENU_ITEMS] = {
     "WHEEL", "ASSIST", "ACCEL", "POWER GRAPH", "FIRMWARE",
-    "BATTERY", "LIGHT", "PANELS", "QUICK WALK", "MODE", "DIAG", "EXIT"
+    "BATTERY", "LIGHT", "PANELS", "QUICK WALK", "MODE", "DIAG", "ASSIST MODES", "EXIT"
 };
 static const evist_adv_screen_t menu_targets[MENU_EXIT] = {
     EVIST_ADV_WHEEL, EVIST_ADV_ASSIST, EVIST_ADV_ACCEL, EVIST_ADV_GRAPH, EVIST_ADV_FIRMWARE,
-    EVIST_ADV_BATTERY, EVIST_ADV_LIGHT, EVIST_ADV_PANELS, EVIST_ADV_QUICK_WALK, EVIST_ADV_MODE, EVIST_ADV_DIAG
+    EVIST_ADV_BATTERY, EVIST_ADV_LIGHT, EVIST_ADV_PANELS, EVIST_ADV_QUICK_WALK, EVIST_ADV_MODE, EVIST_ADV_DIAG,
+    EVIST_ADV_MODES
 };
 
 /* Diameter codes accepted by the controller and the circumference range each
@@ -187,7 +188,21 @@ void evist_advanced_open(evist_advanced_t *a, const evist_preferences_t *p, uint
 }
 
 uint8_t evist_advanced_assist_cells(const evist_advanced_t *a) {
-    return a ? (uint8_t)(evist_assist_visible_levels(a->assist_level_count) * 2u) : 0u;
+    if (!a) return 0u;
+    uint8_t count = 0u;
+    for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level)
+        if (a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) count += 2u;
+    return count;
+}
+
+uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell) {
+    if (!a) return 0u;
+    for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level) {
+        if ((a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) == 0u) continue;
+        if (cell < 2u) return level;
+        cell -= 2u;
+    }
+    return 0u;
 }
 
 size_t evist_advanced_row_count(const evist_advanced_t *a) {
@@ -204,6 +219,7 @@ size_t evist_advanced_row_count(const evist_advanced_t *a) {
     case EVIST_ADV_LIGHT:      return 7u;
     case EVIST_ADV_PANELS:     return EVIST_PANEL_COUNT + 2u;
     case EVIST_ADV_TEMP_VIEW:  return 5u;
+    case EVIST_ADV_MODES:      return EVIST_ASSIST_MODE_COUNT + 2u;
     case EVIST_ADV_QUICK_WALK: return 4u;
     case EVIST_ADV_MODE:       return 6u;
     case EVIST_ADV_DIAG:       return 0u; /* page-based: drawn by the renderer, no rows */
@@ -224,6 +240,7 @@ const char *evist_advanced_screen_title(evist_adv_screen_t s) {
     case EVIST_ADV_LIGHT:      return "BACKLIGHT";
     case EVIST_ADV_PANELS:     return "LOWER FIELDS";
     case EVIST_ADV_TEMP_VIEW:  return "TEMP VIEW";
+    case EVIST_ADV_MODES:      return "ASSIST MODES";
     case EVIST_ADV_QUICK_WALK: return "QUICK WALK";
     case EVIST_ADV_MODE:       return "RIDE MODE";
     case EVIST_ADV_DIAG:       return "DIAGNOSTICS";
@@ -241,8 +258,8 @@ const char *evist_advanced_wheel_diameter_label(const evist_advanced_t *a) {
 }
 
 uint8_t evist_advanced_assist_cell_value(const evist_advanced_t *a, uint8_t cell) {
-    if (!a || cell >= evist_advanced_assist_cells(a)) return 0u;
-    uint8_t level = (uint8_t)(cell / 2u + 1u);
+    uint8_t level = evist_advanced_assist_cell_level(a, cell);
+    if (level == 0u) return 0u;
     evist_assist_column_t column = (cell & 1u) ? EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
     return a->assist_block[evist_assist_column_offset(column) + evist_assist_level_slot(a->assist_level_count, level)];
 }
@@ -351,7 +368,8 @@ static void assist_key(evist_advanced_t *a, evist_adv_key_t k) {
             if ((uint8_t)(a->cursor + 1u) < save) a->cursor++; /* next value cell */
             return;
         }
-        uint8_t level = (uint8_t)(a->cursor / 2u + 1u);
+        uint8_t level = evist_advanced_assist_cell_level(a, a->cursor);
+        if (level == 0u) return;
         evist_assist_column_t column = (a->cursor & 1u) ? EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
         if (evist_assist_edit_step(a->assist_block, a->committed.firmware_profile, a->assist_level_count,
                                    column, level, k == EVIST_ADV_KEY_UP))
@@ -460,6 +478,10 @@ static void preference_edit(evist_advanced_t *a, bool up) {
     case EVIST_ADV_QUICK_WALK:
         if (a->cursor == 0u) w->quick_walk_enabled = !w->quick_walk_enabled;
         else if (a->cursor == 1u) cycle_u8(&w->quick_walk_hold_steps, 1u, 10u, up, a->repeat_active);
+        break;
+    case EVIST_ADV_MODES:
+        if (a->cursor < EVIST_ASSIST_MODE_COUNT)
+            w->assist_mode_mask ^= (uint8_t)(1u << a->cursor);
         break;
     case EVIST_ADV_MODE:
         if (a->cursor == 0u) a->ride_working.mode = up ? EVIST_RIDE_OFFROAD : EVIST_RIDE_LEGAL;

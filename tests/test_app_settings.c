@@ -346,7 +346,10 @@ static void test_start_angle_timeout(void) {
 static void test_assist_startup_interleaving(void) {
     dpc245_ble_app_t b; dpc245_ble_app_init(&b);
     evist_preferences_t prefs; evist_preferences_defaults(&prefs);
+    prefs.assist_level = 1u;
+    prefs.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 2u) | (1u << 4u));
     evist_advanced_t a = {0}; evist_advanced_open(&a, &prefs, 5u);
+    assert(evist_advanced_assist_cells(&a) == 6u);
     b.download_status[5] = 3u; memcpy(b.p1, p1_log, 64u);
     evist_advanced_key(&a, EVIST_ADV_KEY_DOWN);
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);

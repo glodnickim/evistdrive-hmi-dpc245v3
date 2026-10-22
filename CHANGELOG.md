@@ -1,8 +1,12 @@
 # Changelog
 
-## Upcoming
+## 10.25
 
-- The ARC dashboard uses smaller speed digits and no longer draws the colored frame around the speed area.
+- ARC dashboard: larger speed digits inside a smaller frame; the tenth digit is smaller with the unit above it.
+- BIKE → ASSIST MODES allows E, T, S, S+ and B to be enabled independently. UP skips disabled modes and wraps from the highest enabled mode to the lowest. DOWN reaches ASSIST OFF from the lowest enabled mode.
+- ASSIST LEVELS shows POWER% and SPEED%/ASSIST% for every enabled mode, even while riding assistance is off. Disabled modes have no rows; the controller's other 0x6011 slots are preserved and reconciled by the existing profile rules.
+- Quick Walk is enabled by default with a 0.5 s hold. Updating from an earlier version resets display options to defaults as usual; ride counters and error history remain.
+- The display starts faster: the startup animation appears about one second sooner and without a dark flash.
 
 ## 10.24
 

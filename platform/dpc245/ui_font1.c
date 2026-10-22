@@ -5,6 +5,8 @@
 
 #include "ui_font1_speed_data.h"
 #include "ui_font1_speed_small_data.h"
+#include "ui_font1_arc_integer_data.h"
+#include "ui_font1_arc_tenth_data.h"
 #include "ui_font1_badge_data.h"
 #include "ui_font1_badge_plus_data.h"
 #include "ui_font1_value_data.h"

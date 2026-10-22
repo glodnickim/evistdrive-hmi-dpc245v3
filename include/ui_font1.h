@@ -19,6 +19,8 @@ typedef struct {
 
 extern const ui_font1_t ui_font1_speed;   /* main speed digits */
 extern const ui_font1_t ui_font1_speed_small; /* speed tenths */
+extern const ui_font1_t ui_font1_arc_integer; /* ARC integer digits */
+extern const ui_font1_t ui_font1_arc_tenth; /* ARC decimal and tenth */
 extern const ui_font1_t ui_font1_badge;   /* mode letters */
 extern const ui_font1_t ui_font1_badge_plus; /* reduced plus glyph */
 extern const ui_font1_t ui_font1_value;   /* lower values, units, km/h */

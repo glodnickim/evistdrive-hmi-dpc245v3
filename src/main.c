@@ -325,9 +325,12 @@ int main(void){
 #endif
 
     bool adc_ok=dpc245_adc_init();
+    /* Keep PB11 low through LCD init and splash drawing so the pulse driver
+     * powers down and starts at position 1 when the backlight turns on. */
+    dpc245_backlight_off();
     dpc245_lcd_init(delay_ms);
-    dpc245_backlight_init();
     ui_boot_splash_draw();
+    dpc245_backlight_init();
     delay_ms(500u);
 
     /* Load the unified HMI settings image. */

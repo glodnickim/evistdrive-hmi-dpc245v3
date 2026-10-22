@@ -69,13 +69,27 @@ static void set_position_internal(uint8_t target) {
     pulse_delay(2000u);
 }
 
-void dpc245_backlight_init(void) {
+static void pin_output(void) {
     RCC_APB2ENR |= (1u << 3); /* IOPBEN */
     const unsigned shift = (DPC245_BACKLIGHT_PIN - 8u) * 4u;
     uint32_t v = GPIO_CRH;
     v &= ~(0xFu << shift);
     v |= (0x3u << shift);
     GPIO_CRH = v;
+}
+
+void dpc245_backlight_off(void) {
+    RCC_APB2ENR |= (1u << 3); /* IOPBEN */
+    pin_low(); /* Set the output latch before changing PB11 to output. */
+    pin_output();
+    pin_low();
+    current_level = 0u;
+    current_position = 0u;
+    initialized = false;
+}
+
+void dpc245_backlight_init(void) {
+    pin_output();
     pin_high();
     current_level = 0u;
     current_position = 1u;

@@ -4,6 +4,9 @@ from pathlib import Path
 import re, sys
 R=Path(__file__).resolve().parents[1]
 def has(path,text): return text in (R/path).read_text()
+lcd_source=(R/'platform/dpc245/st7789_8080.c').read_text()
+lcd_init=lcd_source.split('void dpc245_lcd_init(')[1].split('void dpc245_lcd_set_window(')[0]
+product_boot=(R/'src/main.c').read_text().split('bool adc_ok=dpc245_adc_init();')[1].split('delay_ms(500u);')[0]
 checks={
  'APP base 0x08006000': has('platform/dpc245/dpc245.ld','ORIGIN = 0x08006000'),
  'APP marker 0x0803FFFE': has('platform/dpc245/dpc245.ld','ORIGIN = 0x0803FFFE'),
@@ -11,6 +14,14 @@ checks={
  'CAN update request 0x4000 contract': has('include/dpc245_recovery_trigger.h','#define DPC245_UPDATE_REQ_CMD       0x40u'),
  'no 0x3005 announcement trigger': not has('src/main.c','fw_update_enter'),
  'preflight recovery before LCD': (lambda m: m.index('dpc245_preflight_run(') < m.index('dpc245_lcd_init('))((R/'src/main.c').read_text()),
+ 'product preflight is 200 ms': has('include/app_config.h','#define EVIST_PREFLIGHT_WINDOW_MS 200u'),
+ 'backlight off before product LCD init': product_boot.index('dpc245_backlight_off();') < product_boot.index('dpc245_lcd_init(delay_ms);'),
+ 'splash drawn before backlight': (lambda m: m.index('dpc245_lcd_init(delay_ms);') < m.index('ui_boot_splash_draw();') < m.index('dpc245_backlight_init();') < m.index('delay_ms(500u);'))((R/'src/main.c').read_text().split('bool adc_ok=dpc245_adc_init();')[1]),
+ 'LCD fixed waits 5/120/10/10 ms': all(f'#define {key} {value}u' in lcd_source for key,value in (
+     ('LCD_RESET_LOW_MS',5),('LCD_RESET_RELEASE_MS',120),('LCD_SLEEP_OUT_MS',10),('LCD_DISPLAY_ON_MS',10))) and
+     re.findall(r'\bdelay_ms\(([^)]*)\)',lcd_init)==[
+         'LCD_RESET_LOW_MS','LCD_RESET_RELEASE_MS','LCD_SLEEP_OUT_MS','LCD_DISPLAY_ON_MS'],
+ 'LCD has one Sleep Out': lcd_init.count('dpc245_lcd_command(0x11)')==1,
  'PROBE invalidates its marker before any wait': (lambda t: t.index('dpc245_marker_clear_retry(dpc245_boot_marker_clear,') < t.index('clock_force_hsi8()'))((R/'platform/dpc245/startup.c').read_text().split('void Reset_Handler(void) {')[1]),
  'every loop before main is bounded': all(any(k in l for k in ('LIMIT','&_edata','&_ebss','i < ms','for (;;)')) for l in (R/'platform/dpc245/startup.c').read_text().splitlines() if re.search(r'\b(for|while)\s*\(', l)) and (R/'src/dpc245_clock_tree.c').read_text().count('if (++n >= spin_limit)') == 2,
  'clock tree checked before use': has('platform/dpc245/startup.c','if (core_hz == 0u) dpc245_system_reset();') and has('src/main.c','if(clock_tree==DPC245_CLOCK_TREE_OTHER) dpc245_system_reset();') and has('src/main.c','if(!dpc245_clock_init()) return dpc245_clock_fallback_hsi();'),

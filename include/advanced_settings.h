@@ -20,7 +20,7 @@ typedef enum { EVIST_ADV_KEY_NONE=0, EVIST_ADV_KEY_UP, EVIST_ADV_KEY_DOWN, EVIST
 typedef enum { EVIST_ADV_MENU=0, EVIST_ADV_WHEEL, EVIST_ADV_ASSIST, EVIST_ADV_ACCEL,
                EVIST_ADV_GRAPH, EVIST_ADV_FIRMWARE, EVIST_ADV_BATTERY, EVIST_ADV_LIGHT,
                EVIST_ADV_PANELS, EVIST_ADV_QUICK_WALK, EVIST_ADV_MODE, EVIST_ADV_DIAG,
-               EVIST_ADV_TEMP_VIEW } evist_adv_screen_t;
+               EVIST_ADV_TEMP_VIEW, EVIST_ADV_MODES } evist_adv_screen_t;
 
 /* DIAG is a read-only, page-based screen (no CAN, no writes). */
 #define EVIST_DIAG_PAGES 7u
@@ -126,7 +126,8 @@ size_t evist_advanced_row_count(const evist_advanced_t *a);
 const char *evist_advanced_menu_label(size_t index);
 const char *evist_advanced_screen_title(evist_adv_screen_t screen);
 const char *evist_advanced_wheel_diameter_label(const evist_advanced_t *a);
-/* ASSIST cell layout: cell = (level-1)*2 + column; SAVE and BACK follow. */
+/* ASSIST shows POWER and SPEED for each enabled visible mode, then SAVE/BACK. */
 uint8_t evist_advanced_assist_cells(const evist_advanced_t *a);
+uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell);
 uint8_t evist_advanced_assist_cell_value(const evist_advanced_t *a, uint8_t cell);
 #endif

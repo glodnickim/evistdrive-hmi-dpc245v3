@@ -1,5 +1,9 @@
 # Input, Button Signal and Power Contract
 
+## Startup display timing
+
+The PRODUCT image serves CAN recovery requests for 200 ms before LCD startup. It then drives PB11 LOW, turning the backlight off even after an MCU-only reset. LCD reset and wake wait 5 + 120 + 10 + 10 ms (145 ms); the 120 ms wait also covers a warm panel reset. The splash is drawn while PB11 remains LOW. After the complete splash frame is ready, the backlight turns on, starting its brightness controller at position 1. The splash remains for 500 ms before settings are loaded from SPI and the dashboard can appear. The fixed waits before splash drawing total 345 ms, excluding hardware setup and drawing time. Physical power-on timing and warm reset behaviour require a check on the display.
+
 ## Digital keys
 
 The local key inputs are active-low GPIOs with pull-ups:

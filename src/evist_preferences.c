@@ -19,6 +19,7 @@ static const uint8_t header[8] = {'E','V','P','1',0xBAu,0xA9u,0xAFu,0xCEu};
 void evist_preferences_defaults(evist_preferences_t *p) {
     if (!p) return;
     p->assist_level = 0u;
+    p->assist_mode_mask = EVIST_ASSIST_MODE_MASK_ALL;
     p->lower_panel = 0u;
     p->temp_view = EVIST_TEMP_BOTH;
     p->motor_temp_limit_c = 0u;
@@ -32,12 +33,13 @@ void evist_preferences_defaults(evist_preferences_t *p) {
     p->light_threshold = 3200u;
     p->light_level = 2u;
     p->panel_mask = (1u << EVIST_BASE_PANEL_COUNT) - 1u;
-    p->quick_walk_enabled = false;
-    p->quick_walk_hold_steps = 4u;
+    p->quick_walk_enabled = true;
+    p->quick_walk_hold_steps = 1u;
 }
 
 bool evist_preferences_validate(const evist_preferences_t *p) {
     if (!p || p->assist_level > 9u || p->lower_panel >= EVIST_PANEL_COUNT) return false;
+    if ((p->assist_mode_mask & (uint8_t)~EVIST_ASSIST_MODE_MASK_ALL) != 0u) return false;
     if (p->temp_view > EVIST_TEMP_2) return false;
     if ((p->motor_temp_limit_c && (p->motor_temp_limit_c < 40u || p->motor_temp_limit_c > 150u)) ||
         (p->ctrl_temp_limit_c && (p->ctrl_temp_limit_c < 40u || p->ctrl_temp_limit_c > 150u))) return false;
@@ -331,6 +333,7 @@ bool evist_preferences_load(const dpc245_persist_io_t *io, evist_preferences_t *
 
 static bool same_preferences(const evist_preferences_t *a, const evist_preferences_t *b) {
     return a->assist_level == b->assist_level && a->lower_panel == b->lower_panel &&
+           a->assist_mode_mask == b->assist_mode_mask &&
            a->firmware_profile == b->firmware_profile && a->graph_scale_w == b->graph_scale_w &&
            a->battery_mask == b->battery_mask && a->light_mode == b->light_mode &&
            a->light_gain == b->light_gain && a->light_dwell == b->light_dwell &&

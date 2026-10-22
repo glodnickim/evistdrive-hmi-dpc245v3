@@ -10,8 +10,11 @@
 #define CTRL_LIMIT_OFFSET 110u
 #define FIRMWARE_VERSION_OFFSET 111u
 #define FIRMWARE_VERSION_BYTES 32u
+#define ASSIST_MASK_OFFSET 143u
 _Static_assert(sizeof(EVISTDRIVE_HMI_VERSION) <= FIRMWARE_VERSION_BYTES,
                "firmware version exceeds native record field");
+_Static_assert(ASSIST_MASK_OFFSET >= FIRMWARE_VERSION_OFFSET + FIRMWARE_VERSION_BYTES &&
+               ASSIST_MASK_OFFSET < RECORD_CRC, "assist mask overlaps native record fields");
 /* An erase that reports busy for five seconds is treated as failed. */
 #define ERASE_WAIT_LIMIT_MS 5000u
 
@@ -61,6 +64,7 @@ static void encode(uint8_t out[EVIST_NATIVE_RECORD_BYTES],
     q[9]=p->light_dwell;put16(q+10u,p->light_threshold);
     q[12]=p->light_level;put16(q+13u,p->panel_mask);
     q[15]=p->quick_walk_enabled?1u:0u;q[16]=p->quick_walk_hold_steps;
+    out[ASSIST_MASK_OFFSET]=p->assist_mode_mask;
     for(unsigned i=0u;i<DPC245_SETTINGS_SIZE;++i)out[HMI_OFFSET+i]=v->hmi.raw[i];
     q=out+RIDE_OFFSET;
     q[0]=(uint8_t)v->ride.mode;q[1]=(uint8_t)v->ride.start;
@@ -111,6 +115,8 @@ static bool decode(const uint8_t in[EVIST_NATIVE_RECORD_BYTES],
     x.preferences.light_threshold=get16(q+10u);x.preferences.light_level=q[12];
     x.preferences.panel_mask=get16(q+13u);x.preferences.quick_walk_enabled=q[15]!=0u;
     x.preferences.quick_walk_hold_steps=q[16];
+    x.preferences.assist_mode_mask=in[ASSIST_MASK_OFFSET]==0xFFu?
+        EVIST_ASSIST_MODE_MASK_ALL:in[ASSIST_MASK_OFFSET];
     x.preferences.motor_temp_limit_c=in[MOTOR_LIMIT_OFFSET]==0xFFu?0u:in[MOTOR_LIMIT_OFFSET];
     x.preferences.ctrl_temp_limit_c=in[CTRL_LIMIT_OFFSET]==0xFFu?0u:in[CTRL_LIMIT_OFFSET];
     for(unsigned i=0u;i<DPC245_SETTINGS_SIZE;++i)x.hmi.raw[i]=in[HMI_OFFSET+i];

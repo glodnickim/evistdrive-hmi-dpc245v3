@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 PROJECT := evistdrive_hmi
-VERSION := 10.24
+VERSION := 10.25
 BUILD := build
 DIST := dist
 ARM_CC ?= clang
@@ -113,9 +113,9 @@ sim: $(BUILD)
 	$(BUILD)/render_screens sim/out
 	$(PYTHON) tools/render_preview.py sim/out
 
-# README gallery: nine fixed UI states, rendered without a coordinate grid.
+# README gallery: fixed UI states, rendered without a coordinate grid.
 # Intermediate RGB565 frames and PNGs stay in sim/out/screenshots/.
-SCREENSHOT_NAMES := standard_dashboard yellow_dashboard arc_dashboard wedge_dashboard overheat_warning main_menu themes_page temp_view_limits advanced_assist
+SCREENSHOT_NAMES := standard_dashboard yellow_dashboard arc_dashboard wedge_dashboard overheat_warning main_menu themes_page temp_view_limits advanced_assist assist_modes
 screenshots: $(BUILD)
 	mkdir -p sim/out/screenshots docs/images
 	$(HOST_CC) -std=c11 -O1 -g -Wall -Wextra -Werror $(INCLUDES) sim/host_lcd.c sim/render_screenshots.c src/ui_dashboard.c platform/dpc245/minifont.c platform/dpc245/ui_font1.c $(HOST_MODULES) -o $(BUILD)/render_screenshots

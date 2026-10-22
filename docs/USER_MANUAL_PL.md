@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.24**, tag `v10.24` repozytorium `glodnickim/evistdrive-hmi-dpc245v3`, stan odczytany 21.10.2026
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.25**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -166,6 +166,7 @@ SETTING
 │   ├── WHEEL
 │   ├── RIDE MODE
 │   ├── QUICK WALK
+│   ├── ASSIST MODES
 │   └── BACK
 ├── INFORMATION
 │   ├── HMI
@@ -283,13 +284,13 @@ Zmiany w tym dziale mogą być zapisywane **w kontrolerze napędu poprzez CAN**,
 
 ### 6.1. `ASSIST LEVELS` – poziomy wspomagania
 
-Podmenu odczytuje tabelę wspomagania kontrolera i udostępnia dla kolejnych poziomów pola:
+Podmenu odczytuje tabelę wspomagania kontrolera i pokazuje po dwa pola dla każdego włączonego trybu E, T, S, S+ lub B, w tej kolejności:
 
-- `L1 POWER%`, `L2 POWER%` itd. — procentowy limit prądu/mocy w tabeli kontrolera (interpretacja zależy od firmware napędu),
-- `L1 SPEED%`, `L2 SPEED%` itd. — druga kolumna w profilu `BAFANG`,
-- `L1 ASSIST%`, `L2 ASSIST%` itd. — ta sama druga kolumna w profilu `FAKE TAXI`, ale interpretowana inaczej.
+- `E POWER%`, `T POWER%` itd. — procentowy limit prądu/mocy w tabeli kontrolera (interpretacja zależy od firmware napędu),
+- `E SPEED%`, `T SPEED%` itd. — druga kolumna w profilu `BAFANG`,
+- `E ASSIST%`, `T ASSIST%` itd. — ta sama druga kolumna w profilu `FAKE TAXI`, ale interpretowana inaczej.
 
-Menu prezentuje maksymalnie pięć poziomów jednocześnie; mapowanie do fizycznych komórek kontrolera uwzględnia liczbę poziomów (3, 5 lub 9). Wartości kolumn edytuje się w zakresie **0–100%**. Po wprowadzeniu zmian przejdź na `SAVE`, aby wysłać pełny blok ustawień do kontrolera i sprawdzić jego odczyt zwrotny.
+Przy profilu pięciu poziomów E, T, S, S+ i B odpowiadają slotom 1, 3, 5, 7 i 8 tabeli kontrolera (numeracja od zera). Lista nie zależy od bieżącego poziomu jazdy, również przy ASSIST OFF. Na przykład przy włączonych E, S i B pokazuje sześć pól, a następnie `SAVE` i `BACK`. Gdy wszystkie tryby są wyłączone, pokazuje `NO MODES ON` oraz tylko `SAVE` i `BACK`. Wartości kolumn edytuje się w zakresie **0–100%**. Po zmianie wybierz `SAVE`, aby wysłać pełny blok ustawień do kontrolera i sprawdzić jego odczyt zwrotny.
 
 W profilu `BAFANG` firmware pilnuje niemalejącego porządku wartości pomiędzy poziomami — nie można dowolnie ustawić poziomu wyższego słabiej niż poprzedni. W profilu `FAKE TAXI` ten wymóg nie obowiązuje. `BACK` odrzuca niezapisane zmiany.
 
@@ -366,9 +367,15 @@ To przełączenie jest **sesyjne**: nie oznacza automatycznej zmiany ustawienia 
 | `HOLD` | Czas przytrzymania `DOWN` przed aktywacją | 0,5–5,0 s, krok 0,5 s |
 | `SAVE` / `BACK` | Zapis / anulowanie | — |
 
-**Domyślnie:** `ENABLE = OFF`, `HOLD = 2,0 s`.
+**Domyślnie:** `ENABLE = ON`, `HOLD = 0,5 s`.
 
 Po uruchomieniu funkcji trzeba stale trzymać `DOWN` — puszczenie kończy żądanie Walk. Ostateczny ruch zależy od kontrolera i sprzętowego sygnału przycisku. Szczegóły w [sekcji 2.1](#21-walk-assist--prowadzenie-roweru).
+
+### 6.7. `ASSIST MODES` – dostępne tryby
+
+Pięć wierszy E, T, S, S+ i B ma niezależne przełączniki `ON`/`OFF`. Po edycji wybierz `SAVE`. Na ekranie jazdy `UP` przechodzi tylko po włączonych trybach i po najwyższym wraca do najniższego. `DOWN` przechodzi przez włączone tryby w dół, a z najniższego do `ASSIST OFF`. Gdy wszystkie tryby są wyłączone, wspomaganie pozostaje `OFF`. Wyłączenie aktualnie używanego trybu po zapisie ustawia `ASSIST OFF`.
+
+![Przełączniki trybów wspomagania](images/assist_modes.png)
 
 ## 7. INFORMATION – dane i diagnostyka
 
@@ -545,7 +552,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.24**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.25**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

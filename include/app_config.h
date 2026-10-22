@@ -5,7 +5,7 @@
 /* Product identity */
 #define EVISTDRIVE_HMI_NAME "EVistDrive HMI"
 /* Release number of this application. */
-#define EVISTDRIVE_HMI_VERSION "10.24"
+#define EVISTDRIVE_HMI_VERSION "10.25"
 
 /* Production feature set. Override with -D for diagnostic builds. */
 #ifndef EVIST_ENABLE_CAN_TX
@@ -46,11 +46,11 @@
 #endif
 
 /* Length of the pre-runtime recovery window. Updaters repeat the CAN request
- * every ~60 ms, so a short window suffices for CAN; qualification images use a
- * long window so a phone can connect over BLE. */
+ * about every 60 ms, so 200 ms sees several repeats. BLE recovery uses a
+ * qualification image's long window or the POWER+UP+DOWN start chord. */
 #ifndef EVIST_PREFLIGHT_WINDOW_MS
 #if EVIST_BUILD_PROFILE == EVIST_PROFILE_PRODUCT
-#define EVIST_PREFLIGHT_WINDOW_MS 1000u
+#define EVIST_PREFLIGHT_WINDOW_MS 200u
 #elif EVIST_BUILD_PROFILE == EVIST_PROFILE_PROBE
 /* Marker already cleared; the probe screen keeps serving requests. */
 #define EVIST_PREFLIGHT_WINDOW_MS 0u
