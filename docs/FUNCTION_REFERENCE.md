@@ -6358,7 +6358,7 @@ Functions: **107**
 
 ### `theme_status`
 
-- Location: `src/ui_dashboard.c:654`
+- Location: `src/ui_dashboard.c:655`
 - Linkage: `static`
 - Type: `void (const dpc245_ui_status_t *, bool)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6367,7 +6367,7 @@ Functions: **107**
 
 ### `theme_soc_text`
 
-- Location: `src/ui_dashboard.c:660`
+- Location: `src/ui_dashboard.c:661`
 - Linkage: `static`
 - Type: `void (const bafang_telemetry_t *, char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6376,7 +6376,7 @@ Functions: **107**
 
 ### `theme_banner`
 
-- Location: `src/ui_dashboard.c:665`
+- Location: `src/ui_dashboard.c:666`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, uint16_t, uint16_t, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6385,7 +6385,7 @@ Functions: **107**
 
 ### `draw_arc`
 
-- Location: `src/ui_dashboard.c:671`
+- Location: `src/ui_dashboard.c:672`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_ui_status_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6394,7 +6394,7 @@ Functions: **107**
 
 ### `draw_wedge`
 
-- Location: `src/ui_dashboard.c:722`
+- Location: `src/ui_dashboard.c:716`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_ui_status_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6403,7 +6403,7 @@ Functions: **107**
 
 ### `draw_menu`
 
-- Location: `src/ui_dashboard.c:782`
+- Location: `src/ui_dashboard.c:776`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6412,7 +6412,7 @@ Functions: **107**
 
 ### `draw_edit`
 
-- Location: `src/ui_dashboard.c:803`
+- Location: `src/ui_dashboard.c:797`
 - Linkage: `static`
 - Type: `void (const char *, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6421,7 +6421,7 @@ Functions: **107**
 
 ### `draw_edit_num`
 
-- Location: `src/ui_dashboard.c:806`
+- Location: `src/ui_dashboard.c:800`
 - Linkage: `static`
 - Type: `void (const char *, uint32_t, const char *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6430,7 +6430,7 @@ Functions: **107**
 
 ### `draw_hmi_info`
 
-- Location: `src/ui_dashboard.c:813`
+- Location: `src/ui_dashboard.c:807`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const dpc245_hwinfo_t *, uint8_t, bool, bool)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6439,7 +6439,7 @@ Functions: **107**
 
 ### `draw_wheel`
 
-- Location: `src/ui_dashboard.c:829`
+- Location: `src/ui_dashboard.c:823`
 - Linkage: `static`
 - Type: `void (const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6448,7 +6448,7 @@ Functions: **107**
 
 ### `draw_speed_limit`
 
-- Location: `src/ui_dashboard.c:835`
+- Location: `src/ui_dashboard.c:829`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6457,7 +6457,7 @@ Functions: **107**
 
 ### `value_text`
 
-- Location: `src/ui_dashboard.c:838`
+- Location: `src/ui_dashboard.c:832`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6466,7 +6466,7 @@ Functions: **107**
 
 ### `raw4_le`
 
-- Location: `src/ui_dashboard.c:843`
+- Location: `src/ui_dashboard.c:837`
 - Linkage: `static`
 - Type: `uint32_t (const uint8_t *, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6475,7 +6475,7 @@ Functions: **107**
 
 ### `draw_page_no`
 
-- Location: `src/ui_dashboard.c:847`
+- Location: `src/ui_dashboard.c:841`
 - Linkage: `static`
 - Type: `void (uint8_t, size_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6484,7 +6484,7 @@ Functions: **107**
 
 ### `draw_battery`
 
-- Location: `src/ui_dashboard.c:853`
+- Location: `src/ui_dashboard.c:847`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6493,7 +6493,7 @@ Functions: **107**
 
 ### `draw_controller`
 
-- Location: `src/ui_dashboard.c:896`
+- Location: `src/ui_dashboard.c:890`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6502,7 +6502,7 @@ Functions: **107**
 
 ### `draw_sensor`
 
-- Location: `src/ui_dashboard.c:918`
+- Location: `src/ui_dashboard.c:912`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_adc_snapshot_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6511,7 +6511,7 @@ Functions: **107**
 
 ### `draw_errors`
 
-- Location: `src/ui_dashboard.c:937`
+- Location: `src/ui_dashboard.c:931`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6520,7 +6520,7 @@ Functions: **107**
 
 ### `draw_trip_reset`
 
-- Location: `src/ui_dashboard.c:955`
+- Location: `src/ui_dashboard.c:949`
 - Linkage: `static`
 - Type: `void (void)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6529,7 +6529,7 @@ Functions: **107**
 
 ### `adv_row`
 
-- Location: `src/ui_dashboard.c:960`
+- Location: `src/ui_dashboard.c:954`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, const char *, bool, bool)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6538,7 +6538,7 @@ Functions: **107**
 
 ### `adv_u16`
 
-- Location: `src/ui_dashboard.c:965`
+- Location: `src/ui_dashboard.c:959`
 - Linkage: `static`
 - Type: `void (char *, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6547,7 +6547,7 @@ Functions: **107**
 
 ### `adv_centi`
 
-- Location: `src/ui_dashboard.c:967`
+- Location: `src/ui_dashboard.c:961`
 - Linkage: `static`
 - Type: `void (char *, uint16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6556,7 +6556,7 @@ Functions: **107**
 
 ### `adv_status_or_footer`
 
-- Location: `src/ui_dashboard.c:971`
+- Location: `src/ui_dashboard.c:965`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6565,7 +6565,7 @@ Functions: **107**
 
 ### `draw_adv_wheel`
 
-- Location: `src/ui_dashboard.c:974`
+- Location: `src/ui_dashboard.c:968`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6574,7 +6574,7 @@ Functions: **107**
 
 ### `draw_adv_assist`
 
-- Location: `src/ui_dashboard.c:988`
+- Location: `src/ui_dashboard.c:982`
 - Linkage: `static`
 - Type: `void (const evist_advanced_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6583,7 +6583,7 @@ Functions: **107**
 
 ### `diag_u32`
 
-- Location: `src/ui_dashboard.c:1008`
+- Location: `src/ui_dashboard.c:1002`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, uint32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6592,7 +6592,7 @@ Functions: **107**
 
 ### `diag_i32`
 
-- Location: `src/ui_dashboard.c:1011`
+- Location: `src/ui_dashboard.c:1005`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, int32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6601,7 +6601,7 @@ Functions: **107**
 
 ### `diag_append`
 
-- Location: `src/ui_dashboard.c:1014`
+- Location: `src/ui_dashboard.c:1008`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6610,7 +6610,7 @@ Functions: **107**
 
 ### `diag_number`
 
-- Location: `src/ui_dashboard.c:1018`
+- Location: `src/ui_dashboard.c:1012`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6619,7 +6619,7 @@ Functions: **107**
 
 ### `diag_elapsed_ms`
 
-- Location: `src/ui_dashboard.c:1024`
+- Location: `src/ui_dashboard.c:1018`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6628,7 +6628,7 @@ Functions: **107**
 
 ### `diag_signed`
 
-- Location: `src/ui_dashboard.c:1028`
+- Location: `src/ui_dashboard.c:1022`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, int16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6637,7 +6637,7 @@ Functions: **107**
 
 ### `diag_hex_byte`
 
-- Location: `src/ui_dashboard.c:1032`
+- Location: `src/ui_dashboard.c:1026`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6646,7 +6646,7 @@ Functions: **107**
 
 ### `diag_sources`
 
-- Location: `src/ui_dashboard.c:1036`
+- Location: `src/ui_dashboard.c:1030`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6655,7 +6655,7 @@ Functions: **107**
 
 ### `diag_stage`
 
-- Location: `src/ui_dashboard.c:1044`
+- Location: `src/ui_dashboard.c:1038`
 - Linkage: `static`
 - Type: `void (uint16_t, uint16_t, const char *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6664,7 +6664,7 @@ Functions: **107**
 
 ### `ble_reject_text`
 
-- Location: `src/ui_dashboard.c:1049`
+- Location: `src/ui_dashboard.c:1043`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6673,7 +6673,7 @@ Functions: **107**
 
 ### `diag_result_text`
 
-- Location: `src/ui_dashboard.c:1060`
+- Location: `src/ui_dashboard.c:1054`
 - Linkage: `static`
 - Type: `const char *(evist_txn_result_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6682,7 +6682,7 @@ Functions: **107**
 
 ### `diag_live_source`
 
-- Location: `src/ui_dashboard.c:1069`
+- Location: `src/ui_dashboard.c:1063`
 - Linkage: `static`
 - Type: `void (uint16_t, const dpc245_temp_live_source_t *, bool, int16_t, const char *, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6691,7 +6691,7 @@ Functions: **107**
 
 ### `draw_adv_diag`
 
-- Location: `src/ui_dashboard.c:1091`
+- Location: `src/ui_dashboard.c:1085`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint8_t, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6700,7 +6700,7 @@ Functions: **107**
 
 ### `draw_advanced`
 
-- Location: `src/ui_dashboard.c:1231`
+- Location: `src/ui_dashboard.c:1225`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6709,7 +6709,7 @@ Functions: **107**
 
 ### `ui_dashboard_draw`
 
-- Location: `src/ui_dashboard.c:1320`
+- Location: `src/ui_dashboard.c:1314`
 - Linkage: `global`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_adc_snapshot_t *, const dpc245_hwinfo_t *, uint8_t, bool, bool, bool, uint32_t, const dpc245_ui_status_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.

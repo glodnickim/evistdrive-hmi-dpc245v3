@@ -645,11 +645,12 @@ static void theme_speed_arc(const dpc245_app_t *c,const bafang_telemetry_t *t){
     uint32_t tenth=t->have_speed?display_metric(c,t->speed_centi_kph)/10u:0u;
     uint32_t whole=tenth/10u;if(whole>99u)whole=99u;
     uint16_t colour=c->temp_warning_sources?TEMP_WARN_RED:WHITE;
-    if(whole>=10u)theme_speed_cell(&ui_font1_speed,(char)('0'+whole/10u),33u,66u,128,colour);
-    theme_speed_cell(&ui_font1_speed,(char)('0'+whole%10u),99u,66u,128,colour);
-    ui_font1_text_clipped(&ui_font1_speed_small,165u,128,".",colour,BLACK,165u,177u);
-    theme_speed_cell(&ui_font1_speed_small,(char)('0'+tenth%10u),178u,30u,128,colour);
-    ui_font1_text(&ui_font1_small,173u,69,dash_speed_unit(c,true),WHITE,BLACK);
+    /* Smaller digits (speed_small), shifted right so they don't crowd the power arc. */
+    if(whole>=10u)theme_speed_cell(&ui_font1_speed_small,(char)('0'+whole/10u),45u,66u,128,colour);
+    theme_speed_cell(&ui_font1_speed_small,(char)('0'+whole%10u),111u,66u,128,colour);
+    ui_font1_text_clipped(&ui_font1_speed_small,177u,128,".",colour,BLACK,177u,189u);
+    theme_speed_cell(&ui_font1_speed_small,(char)('0'+tenth%10u),190u,30u,128,colour);
+    ui_font1_text(&ui_font1_small,185u,69,dash_speed_unit(c,true),WHITE,BLACK);
 }
 static void theme_status(const dpc245_ui_status_t *s,bool wedge){
     if(!s)return;
@@ -682,14 +683,7 @@ static void draw_arc(const dpc245_app_t *c,const evist_can_router_t *r,const dpc
     }
     theme_status(status,false);
     ui_font1_text(&ui_font1_title,31u,17,theme_mode_name(c),theme_mode_colour(c,t,now_ms),BLACK);
-    uint16_t frame=c->ride_indicator==DPC245_RIDE_IND_OFFROAD?RIDE_OFFROAD_COL:0xBDF7u;
-    dpc245_lcd_fill_rect(29u,23u,180u,2u,frame);
-    dpc245_lcd_fill_rect(29u,134u,180u,2u,frame);
-    dpc245_lcd_fill_rect(27u,26u,2u,107u,frame);
-    for(uint16_t y=25u;y<=133u;y++){
-        uint16_t x=y<=79u?(uint16_t)(209u+(y-25u)/2u):(uint16_t)(209u+(133u-y)/2u);
-        dpc245_lcd_fill_rect(x,y,2u,1u,frame);
-    }
+    /* Orange frame removed: its left edge covered the power arc and looked oversized. */
     theme_speed_arc(c,t);
     char left[6],right[6];const char *ll,*rl,*lu,*ru;
     theme_pair(c,t,now_ms,left,right,&ll,&rl,&lu,&ru);

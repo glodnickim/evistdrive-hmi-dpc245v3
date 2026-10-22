@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+
+- The ARC dashboard uses smaller speed digits and no longer draws the colored frame around the speed area.
+
 ## 10.24
 
 - PEDAL power is now averaged over about 10 seconds and shown in 5 W steps; it shows `--` when no data is available and drops to 0 when pedalling stops.
