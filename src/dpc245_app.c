@@ -92,14 +92,15 @@ static uint8_t cycle_enabled_assist(const dpc245_app_t *c, bool up){
         c->assist_level_count:EVIST_ASSIST_MODE_COUNT;
     if(limit==0u)return 0u;
     uint8_t level=c->assist_level;
+    if(up&&level>=limit)return level;
     if(!up&&level==0u)return 0u;
     for(uint8_t n=0u;n<limit;++n){
-        level=up?(uint8_t)(level>=limit?1u:level+1u):
+        level=up?(uint8_t)(level+1u):
             (uint8_t)(level<=1u?0u:level-1u);
         if(level==0u)return 0u;
         if(assist_enabled(c,level))return level;
     }
-    return up?0u:level;
+    return up?c->assist_level:level;
 }
 
 static void reconcile_selected_assist(dpc245_app_t *c){
@@ -727,6 +728,7 @@ void dpc245_app_dashboard_render_complete(dpc245_app_t *c,
 }
 
 static void temperature_warning_tick(dpc245_app_t *c,uint32_t now_ms) {
+    const int16_t clear_margin_c=1; /* Clear below the configured limit. */
     bool fresh=c->temp_sample_received&&(uint32_t)(now_ms-c->temp_sample_rx_ms)<=3000u;
     uint8_t old=c->temp_warning_sources;
     if(fresh&&c->temp_motor_valid&&(!c->temp_motor_max_valid||c->temp_motor_c>c->temp_motor_max_c)){
@@ -741,7 +743,7 @@ static void temperature_warning_tick(dpc245_app_t *c,uint32_t now_ms) {
         bool valid=fresh&&(i==0u?c->temp_motor_valid:c->temp_ctrl_valid);
         int16_t value=i==0u?c->temp_motor_c:c->temp_ctrl_c;
         bool active=(c->temp_warning_sources&bit)!=0u;
-        bool transition=active?(!valid||limit==0u||value<=(int16_t)limit-5):
+        bool transition=active?(!valid||limit==0u||value<=(int16_t)limit-clear_margin_c):
                               (valid&&limit!=0u&&value>=limit);
         dpc245_temp_live_source_t *live=&c->temp_live[i];
         live->sampled_c=value;live->limit_c=limit;

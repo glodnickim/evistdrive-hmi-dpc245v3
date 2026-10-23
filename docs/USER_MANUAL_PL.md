@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.25**, wersja robocza do testu na urządzeniu.
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.26**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -245,7 +245,7 @@ Wybór `BOTH` pozwala pokazać razem temperaturę kontrolera i silnika w panelu 
 
 **Domyślnie** obydwa limity to `OFF`, a widok to `BOTH`. Progi włączają ostrzeżenie wizualne, **nie są sterowaniem ograniczenia prądu czy mocy silnika**. Wybieraj progi zgodnie z faktycznie dostępnymi czujnikami i zaleceniami producenta napędu.
 
-Po przekroczeniu aktywnego limitu przez około **2 s** pojawia się komunikat `MOTOR HOT`, `CTRL HOT` albo `MOTOR+CTRL HOT`, a prędkość robi się czerwona. Komunikat tekstowy znika po około 3 s, czerwony kolor pozostaje do ustąpienia stanu ostrzegawczego. Ostrzeżenie dla danego źródła gaśnie, gdy temperatura pozostaje co najmniej 5°C poniżej progu przez 2 s albo odczyt traci ważność przez 2 s. Próbka CAN starsza niż 3 s jest uznawana za nieważną.
+Po przekroczeniu aktywnego limitu przez około **2 s** pojawia się komunikat `MOTOR HOT`, `CTRL HOT` albo `MOTOR+CTRL HOT`, a prędkość robi się czerwona. Komunikat tekstowy znika po około 3 s, czerwony kolor pozostaje do ustąpienia stanu ostrzegawczego. Ostrzeżenie dla danego źródła gaśnie, gdy temperatura pozostaje poniżej progu przez 2 s albo odczyt traci ważność przez 2 s. Próbka CAN starsza niż 3 s jest uznawana za nieważną.
 
 ![Ustawienia temperatur](images/temp_view_limits.png)
 
@@ -373,7 +373,7 @@ Po uruchomieniu funkcji trzeba stale trzymać `DOWN` — puszczenie kończy żą
 
 ### 6.7. `ASSIST MODES` – dostępne tryby
 
-Pięć wierszy E, T, S, S+ i B ma niezależne przełączniki `ON`/`OFF`. Po edycji wybierz `SAVE`. Na ekranie jazdy `UP` przechodzi tylko po włączonych trybach i po najwyższym wraca do najniższego. `DOWN` przechodzi przez włączone tryby w dół, a z najniższego do `ASSIST OFF`. Gdy wszystkie tryby są wyłączone, wspomaganie pozostaje `OFF`. Wyłączenie aktualnie używanego trybu po zapisie ustawia `ASSIST OFF`.
+Pięć wierszy E, T, S, S+ i B ma niezależne przełączniki `ON`/`OFF`. Po edycji wybierz `SAVE`. Na ekranie jazdy `UP` przechodzi tylko po włączonych trybach i zatrzymuje się na najwyższym włączonym. Z `ASSIST OFF` przechodzi do najniższego włączonego trybu. `DOWN` przechodzi przez włączone tryby w dół, a z najniższego do `ASSIST OFF`. Gdy wszystkie tryby są wyłączone, wspomaganie pozostaje `OFF`. Wyłączenie aktualnie używanego trybu po zapisie ustawia `ASSIST OFF`.
 
 ![Przełączniki trybów wspomagania](images/assist_modes.png)
 
@@ -552,7 +552,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.25**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.26**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

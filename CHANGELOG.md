@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.26
+
+- UP now stops at the highest enabled assistance mode; DOWN still reaches ASSIST OFF from the lowest mode.
+- Temperature warnings now clear after the reading stays below its limit for 2 seconds.
+
 ## 10.25
 
 - ARC dashboard: larger speed digits inside a smaller frame; the tenth digit is smaller with the unit above it.

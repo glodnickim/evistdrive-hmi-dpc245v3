@@ -653,7 +653,7 @@ static void test_temperature_warning(void) {
     assert(app.temp_warning_last.sample_age_ms==200u);
     assert(app.temp_warning_last.motor_limit_c==120u&&app.temp_warning_last.ctrl_limit_c==100u);
     assert(app.temp_warning_last.raw6==139u&&app.temp_warning_last.raw7==160u);
-    sample.motor_temp_c=116;sample.controller_fast1_rx_ms=6200u;
+    sample.motor_temp_c=120;sample.controller_fast1_rx_ms=6200u;
     dpc245_app_temperature_sample(&app,&sample);dpc245_app_tick(&app,6200u);
     assert(app.temp_warning_sources==1u);
     sample.controller_temp_c=100;sample.controller_fast1_rx_ms=7000u;
@@ -662,23 +662,18 @@ static void test_temperature_warning(void) {
     dpc245_app_tick(&app,9000u);assert(app.temp_warning_sources==3u);
     assert(app.temp_warning_text_until_ms==12000u);
     assert(app.temp_warning_activations==1u); /* adding a source is not another activation */
-    sample.motor_temp_c=115;sample.controller_temp_c=96;sample.controller_fast1_rx_ms=9100u;
+    sample.motor_temp_c=115;sample.controller_temp_c=99;sample.controller_fast1_rx_ms=9100u;
     dpc245_app_temperature_sample(&app,&sample);dpc245_app_tick(&app,9100u);
+    dpc245_app_tick(&app,11099u);assert(app.temp_warning_sources==3u);
     sample.controller_fast1_rx_ms=11100u;dpc245_app_temperature_sample(&app,&sample);
-    dpc245_app_tick(&app,11100u);assert(app.temp_warning_sources==2u); /* 96 > 100-5 */
-    sample.controller_temp_c=95;sample.controller_fast1_rx_ms=11200u;
+    dpc245_app_tick(&app,11100u);assert(app.temp_warning_sources==0u); /* 99 is below the 100 C limit */
+    sample.controller_temp_c=101;sample.controller_temp_raw=141u;sample.controller_fast1_rx_ms=11200u;
     dpc245_app_temperature_sample(&app,&sample);dpc245_app_tick(&app,11200u);
-    sample.controller_fast1_rx_ms=13199u;dpc245_app_temperature_sample(&app,&sample);
-    dpc245_app_tick(&app,13199u);assert(app.temp_warning_sources==2u);
     sample.controller_fast1_rx_ms=13200u;dpc245_app_temperature_sample(&app,&sample);
-    dpc245_app_tick(&app,13200u);assert(app.temp_warning_sources==0u);
-    sample.controller_temp_c=101;sample.controller_temp_raw=141u;sample.controller_fast1_rx_ms=13300u;
-    dpc245_app_temperature_sample(&app,&sample);dpc245_app_tick(&app,13300u);
-    sample.controller_fast1_rx_ms=15300u;dpc245_app_temperature_sample(&app,&sample);
-    dpc245_app_tick(&app,15300u);assert(app.temp_warning_sources==2u);
-    assert(app.temp_warning_text_until_ms==18300u);
+    dpc245_app_tick(&app,13200u);assert(app.temp_warning_sources==2u);
+    assert(app.temp_warning_text_until_ms==16200u);
     assert(app.temp_warning_activations==2u);
-    assert(app.temp_warning_last.uptime_s==15u&&app.temp_warning_last.sources==2u);
+    assert(app.temp_warning_last.uptime_s==13u&&app.temp_warning_last.sources==2u);
     assert(app.temp_warning_last.ctrl_c==101&&app.temp_warning_last.sample_age_ms==0u);
     assert(app.temp_warning_last.raw6==141u&&app.temp_warning_last.raw7==160u);
     assert(app.temp_motor_max_c==121&&app.temp_ctrl_max_c==101);
@@ -835,6 +830,11 @@ static void assist_modes_ui_tests(void) {
     dpc245_app_key(&app, DPC245_APP_KEY_UP);
     assert(app.assist_level == 5u);
     dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 5u);
+    dpc245_app_key(&app, DPC245_APP_KEY_DOWN);
+    assert(app.assist_level == 4u);
+    dpc245_app_key(&app, DPC245_APP_KEY_DOWN);
     assert(app.assist_level == 1u);
     dpc245_app_key(&app, DPC245_APP_KEY_DOWN);
     assert(app.assist_level == 0u);
@@ -884,6 +884,31 @@ static void assist_modes_ui_tests(void) {
     assert(evist_advanced_assist_cells(&adv) == 0u && evist_advanced_row_count(&adv) == 2u);
     dpc245_app_apply_preferences(&app, &prefs);
     assert(app.assist_level == 0u);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 0u);
+
+    prefs.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 2u));
+    prefs.assist_level = 3u;
+    dpc245_app_apply_preferences(&app, &prefs);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 3u);
+
+    prefs.assist_mode_mask = (uint8_t)((1u << 0u) | (1u << 1u) | (1u << 2u) | (1u << 3u));
+    prefs.assist_level = 4u;
+    dpc245_app_apply_preferences(&app, &prefs);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 4u);
+
+    prefs.assist_mode_mask = (uint8_t)((1u << 1u) | (1u << 3u));
+    prefs.assist_level = 0u;
+    dpc245_app_apply_preferences(&app, &prefs);
+    dpc245_app_key(&app, DPC245_APP_KEY_UP);
+    assert(app.assist_level == 2u);
+
+    prefs.assist_mode_mask = 0u;
+    prefs.assist_level = 0u;
+    dpc245_app_apply_preferences(&app, &prefs);
     dpc245_app_key(&app, DPC245_APP_KEY_UP);
     assert(app.assist_level == 0u);
 }

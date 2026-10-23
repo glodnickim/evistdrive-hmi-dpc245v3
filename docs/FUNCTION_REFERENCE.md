@@ -3046,7 +3046,7 @@ Functions: **45**
 
 ### `reconcile_selected_assist`
 
-- Location: `src/dpc245_app.c:105`
+- Location: `src/dpc245_app.c:106`
 - Linkage: `static`
 - Type: `void (dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3055,7 +3055,7 @@ Functions: **45**
 
 ### `value_edit_active`
 
-- Location: `src/dpc245_app.c:117`
+- Location: `src/dpc245_app.c:118`
 - Linkage: `static`
 - Type: `bool (const dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3064,7 +3064,7 @@ Functions: **45**
 
 ### `value_edit_repeatable`
 
-- Location: `src/dpc245_app.c:126`
+- Location: `src/dpc245_app.c:127`
 - Linkage: `static`
 - Type: `bool (const dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3073,7 +3073,7 @@ Functions: **45**
 
 ### `dpc245_app_init`
 
-- Location: `src/dpc245_app.c:156`
+- Location: `src/dpc245_app.c:157`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const dpc245_settings_t *)`
 - Responsibility: Initialization in the dpc245_app module.
@@ -3082,7 +3082,7 @@ Functions: **45**
 
 ### `dpc245_app_apply_preferences`
 
-- Location: `src/dpc245_app.c:222`
+- Location: `src/dpc245_app.c:223`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const evist_preferences_t *)`
 - Responsibility: Apply operation in the dpc245_app module.
@@ -3091,7 +3091,7 @@ Functions: **45**
 
 ### `dpc245_app_menu_count`
 
-- Location: `src/dpc245_app.c:233`
+- Location: `src/dpc245_app.c:234`
 - Linkage: `global`
 - Type: `size_t (dpc245_app_screen_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3100,7 +3100,7 @@ Functions: **45**
 
 ### `dpc245_app_detail_page_count`
 
-- Location: `src/dpc245_app.c:245`
+- Location: `src/dpc245_app.c:246`
 - Linkage: `global`
 - Type: `size_t (dpc245_app_screen_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3109,7 +3109,7 @@ Functions: **45**
 
 ### `is_paged_info`
 
-- Location: `src/dpc245_app.c:254`
+- Location: `src/dpc245_app.c:255`
 - Linkage: `static`
 - Type: `bool (dpc245_app_screen_t)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3118,7 +3118,7 @@ Functions: **45**
 
 ### `dpc245_app_menu_label`
 
-- Location: `src/dpc245_app.c:260`
+- Location: `src/dpc245_app.c:261`
 - Linkage: `global`
 - Type: `const char *(dpc245_app_screen_t, size_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3127,7 +3127,7 @@ Functions: **45**
 
 ### `edit_u8_wrap`
 
-- Location: `src/dpc245_app.c:276`
+- Location: `src/dpc245_app.c:277`
 - Linkage: `static`
 - Type: `void (uint8_t *, uint8_t, uint8_t, dpc245_app_key_t, bool)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3136,7 +3136,7 @@ Functions: **45**
 
 ### `dpc245_app_key`
 
-- Location: `src/dpc245_app.c:282`
+- Location: `src/dpc245_app.c:283`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, dpc245_app_key_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3145,7 +3145,7 @@ Functions: **45**
 
 ### `dpc245_app_dashboard_field_label`
 
-- Location: `src/dpc245_app.c:501`
+- Location: `src/dpc245_app.c:502`
 - Linkage: `global`
 - Type: `const char *(dpc245_dashboard_field_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3154,7 +3154,7 @@ Functions: **45**
 
 ### `ride_assist_zero`
 
-- Location: `src/dpc245_app.c:506`
+- Location: `src/dpc245_app.c:507`
 - Linkage: `static`
 - Type: `void (dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3163,7 +3163,7 @@ Functions: **45**
 
 ### `ride_walk_busy`
 
-- Location: `src/dpc245_app.c:511`
+- Location: `src/dpc245_app.c:512`
 - Linkage: `static`
 - Type: `bool (const dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3172,7 +3172,7 @@ Functions: **45**
 
 ### `ride_effective_offroad`
 
-- Location: `src/dpc245_app.c:515`
+- Location: `src/dpc245_app.c:516`
 - Linkage: `static`
 - Type: `bool (const dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3181,7 +3181,7 @@ Functions: **45**
 
 ### `ride_combo_cancel`
 
-- Location: `src/dpc245_app.c:520`
+- Location: `src/dpc245_app.c:521`
 - Linkage: `static`
 - Type: `void (dpc245_app_t *)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3190,7 +3190,7 @@ Functions: **45**
 
 ### `ride_short`
 
-- Location: `src/dpc245_app.c:528`
+- Location: `src/dpc245_app.c:529`
 - Linkage: `static`
 - Type: `bool (dpc245_app_t *, dpc245_key_event_t, uint32_t)`
 - Responsibility: Internal helper of the dpc245_app module.
@@ -3199,7 +3199,7 @@ Functions: **45**
 
 ### `dpc245_app_event`
 
-- Location: `src/dpc245_app.c:580`
+- Location: `src/dpc245_app.c:581`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, dpc245_key_event_t, uint32_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3208,7 +3208,7 @@ Functions: **45**
 
 ### `dpc245_app_down_state`
 
-- Location: `src/dpc245_app.c:702`
+- Location: `src/dpc245_app.c:703`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, bool, uint32_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3217,7 +3217,7 @@ Functions: **45**
 
 ### `dpc245_app_temperature_sample`
 
-- Location: `src/dpc245_app.c:708`
+- Location: `src/dpc245_app.c:709`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const bafang_telemetry_t *)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3226,7 +3226,7 @@ Functions: **45**
 
 ### `dpc245_app_dashboard_render_complete`
 
-- Location: `src/dpc245_app.c:720`
+- Location: `src/dpc245_app.c:721`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const dpc245_app_t *, uint32_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3235,7 +3235,7 @@ Functions: **45**
 
 ### `temperature_warning_tick`
 
-- Location: `src/dpc245_app.c:729`
+- Location: `src/dpc245_app.c:730`
 - Linkage: `static`
 - Type: `void (dpc245_app_t *, uint32_t)`
 - Responsibility: Periodic step in the dpc245_app module.
@@ -3244,7 +3244,7 @@ Functions: **45**
 
 ### `dpc245_app_tick`
 
-- Location: `src/dpc245_app.c:780`
+- Location: `src/dpc245_app.c:782`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, uint32_t)`
 - Responsibility: Periodic step in the dpc245_app module.
@@ -3253,7 +3253,7 @@ Functions: **45**
 
 ### `dpc245_app_power_graph_tick`
 
-- Location: `src/dpc245_app.c:828`
+- Location: `src/dpc245_app.c:830`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, int32_t, uint32_t)`
 - Responsibility: Periodic step in the dpc245_app module.
@@ -3262,7 +3262,7 @@ Functions: **45**
 
 ### `dpc245_app_take_light_toggle`
 
-- Location: `src/dpc245_app.c:843`
+- Location: `src/dpc245_app.c:845`
 - Linkage: `global`
 - Type: `bool (dpc245_app_t *)`
 - Responsibility: Consume-once accessor in the dpc245_app module.
@@ -3271,7 +3271,7 @@ Functions: **45**
 
 ### `dpc245_app_set_ride`
 
-- Location: `src/dpc245_app.c:850`
+- Location: `src/dpc245_app.c:852`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const evist_ride_cfg_t *)`
 - Responsibility: Setter in the dpc245_app module.
@@ -3280,7 +3280,7 @@ Functions: **45**
 
 ### `dpc245_app_take_ride_cfg_dirty`
 
-- Location: `src/dpc245_app.c:861`
+- Location: `src/dpc245_app.c:863`
 - Linkage: `global`
 - Type: `bool (dpc245_app_t *, evist_ride_cfg_t *)`
 - Responsibility: Consume-once accessor in the dpc245_app module.
@@ -3289,7 +3289,7 @@ Functions: **45**
 
 ### `dpc245_app_take_ride_apply`
 
-- Location: `src/dpc245_app.c:866`
+- Location: `src/dpc245_app.c:868`
 - Linkage: `global`
 - Type: `bool (dpc245_app_t *, uint16_t *)`
 - Responsibility: Consume-once accessor in the dpc245_app module.
@@ -3298,7 +3298,7 @@ Functions: **45**
 
 ### `dpc245_app_ride_applied`
 
-- Location: `src/dpc245_app.c:874`
+- Location: `src/dpc245_app.c:876`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const evist_ride_apply_t *)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3307,7 +3307,7 @@ Functions: **45**
 
 ### `dpc245_app_ride_wheel_verified`
 
-- Location: `src/dpc245_app.c:898`
+- Location: `src/dpc245_app.c:900`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, const uint8_t *)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3316,7 +3316,7 @@ Functions: **45**
 
 ### `dpc245_app_take_preferences_dirty`
 
-- Location: `src/dpc245_app.c:910`
+- Location: `src/dpc245_app.c:912`
 - Linkage: `global`
 - Type: `bool (dpc245_app_t *, evist_preferences_t *)`
 - Responsibility: Consume-once accessor in the dpc245_app module.
@@ -3325,7 +3325,7 @@ Functions: **45**
 
 ### `dpc245_app_take_settings_dirty`
 
-- Location: `src/dpc245_app.c:917`
+- Location: `src/dpc245_app.c:919`
 - Linkage: `global`
 - Type: `bool (dpc245_app_t *)`
 - Responsibility: Consume-once accessor in the dpc245_app module.
@@ -3334,7 +3334,7 @@ Functions: **45**
 
 ### `dpc245_app_theme_store_result`
 
-- Location: `src/dpc245_app.c:924`
+- Location: `src/dpc245_app.c:926`
 - Linkage: `global`
 - Type: `void (dpc245_app_t *, bool, uint8_t)`
 - Responsibility: Public function of the dpc245_app module.
@@ -3343,7 +3343,7 @@ Functions: **45**
 
 ### `dpc245_app_theme_row_value`
 
-- Location: `src/dpc245_app.c:933`
+- Location: `src/dpc245_app.c:935`
 - Linkage: `global`
 - Type: `const char *(const dpc245_app_t *, uint8_t)`
 - Responsibility: Public function of the dpc245_app module.

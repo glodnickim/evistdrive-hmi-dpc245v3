@@ -4,7 +4,7 @@
 
 **Documentation version:** Draft 1.0, October 15, 2026
 
-**Reference firmware:** EVistDrive HMI **10.25**, development candidate awaiting device testing.
+**Reference firmware:** EVistDrive HMI **10.26**, development candidate awaiting device testing.
 
 **Interface language:** English. This manual preserves the exact option names displayed on the device.
 
@@ -245,7 +245,7 @@ Example: To cycle only among `TRIP+ODO`, `WATT+TMP` and `RNG+VOLT`, leave only t
 
 **Defaults:** `BOTH` and both warning limits `OFF`. The thresholds activate a visual alert; **they do not control motor current or power reduction**. Use values appropriate to the available sensors and the drive manufacturer's specifications.
 
-If an enabled threshold is exceeded for approximately **2 seconds**, `MOTOR HOT`, `CTRL HOT` or `MOTOR+CTRL HOT` appears and the speed digits turn red. The text disappears after approximately 3 seconds; the red speed remains until the alert clears. An alert for a particular source clears after the temperature stays at least 5°C below the threshold for 2 seconds, or after the reading has been invalid for 2 seconds. A CAN temperature sample older than 3 seconds is treated as invalid.
+If an enabled threshold is exceeded for approximately **2 seconds**, `MOTOR HOT`, `CTRL HOT` or `MOTOR+CTRL HOT` appears and the speed digits turn red. The text disappears after approximately 3 seconds; the red speed remains until the alert clears. An alert for a particular source clears after the temperature stays below the threshold for 2 seconds, or after the reading has been invalid for 2 seconds. A CAN temperature sample older than 3 seconds is treated as invalid.
 
 ![Temperature settings](images/temp_view_limits.png)
 
@@ -373,7 +373,7 @@ Once activated, `DOWN` must remain held: releasing it stops the Walk request. Ac
 
 ### 6.7. `ASSIST MODES` – enabled modes
 
-The five E, T, S, S+ and B rows each have an independent `ON`/`OFF` switch. Select `SAVE` after editing. On the riding screen, `UP` skips disabled modes and wraps from the highest enabled mode to the lowest. `DOWN` moves through enabled modes toward `ASSIST OFF` below the lowest. If every mode is disabled, assistance stays OFF. Saving a change that disables the currently selected mode sets assistance to OFF.
+The five E, T, S, S+ and B rows each have an independent `ON`/`OFF` switch. Select `SAVE` after editing. On the riding screen, `UP` skips disabled modes and stops at the highest enabled mode; from `ASSIST OFF`, it selects the lowest enabled mode. `DOWN` moves through enabled modes toward `ASSIST OFF` below the lowest. If every mode is disabled, assistance stays OFF. Saving a change that disables the currently selected mode sets assistance to OFF.
 
 ![Assistance mode switches](images/assist_modes.png)
 
@@ -552,7 +552,7 @@ This manual was developed primarily from the actual UI labels, button handling a
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – technical project documentation;
 - `README.md` – release and version information.
 
-**Version note:** the current version (**10.25**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
+**Version note:** the current version (**10.26**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
 
 **Before marking this manual as verified:** The project maintainer should compare this manual with the current `HEAD`, resolve inconsistencies and generate/verify simulator screenshots. In particular, the following require physical hardware verification: `AUTO OFF` behavior, the direction of the `ACCELERATION` scale, how `BACKLIGHT → LEVEL` affects actual brightness, details of Standard Walk operation, and successful application of RIDE settings with a specific controller. Do not present these as hardware-verified facts until they have been tested.
 
