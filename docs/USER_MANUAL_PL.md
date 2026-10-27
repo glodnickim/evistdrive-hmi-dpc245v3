@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.26**, wersja robocza do testu na urządzeniu.
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.27**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -243,7 +243,7 @@ Przykład: aby przełączać jedynie `TRIP+ODO`, `WATT+TMP` i `RNG+VOLT`, pozost
 
 Wybór `BOTH` pozwala pokazać razem temperaturę kontrolera i silnika w panelu `TEMP`. `ALTERNATE` powoduje zmianę wybieranego czujnika co ok. 3 s w polach korzystających z pojedynczej temperatury. `TEMP 1` odpowiada temperaturze kontrolera, a `TEMP 2` — temperaturze silnika, zgodnie z implementacją selektora w UI; przy redakcji kolejnych wersji instrukcji należy ponownie sprawdzić to przypisanie.
 
-**Domyślnie** obydwa limity to `OFF`, a widok to `BOTH`. Progi włączają ostrzeżenie wizualne, **nie są sterowaniem ograniczenia prądu czy mocy silnika**. Wybieraj progi zgodnie z faktycznie dostępnymi czujnikami i zaleceniami producenta napędu.
+**Domyślnie** widok to `BOTH`, `MOTOR LIMIT` wynosi 75°C, a `CTRL LIMIT` 70°C (aby wyłączyć ostrzeżenie, wybierz `OFF`). Progi włączają ostrzeżenie wizualne, **nie są sterowaniem ograniczenia prądu czy mocy silnika**. Wybieraj progi zgodnie z faktycznie dostępnymi czujnikami i zaleceniami producenta napędu.
 
 Po przekroczeniu aktywnego limitu przez około **2 s** pojawia się komunikat `MOTOR HOT`, `CTRL HOT` albo `MOTOR+CTRL HOT`, a prędkość robi się czerwona. Komunikat tekstowy znika po około 3 s, czerwony kolor pozostaje do ustąpienia stanu ostrzegawczego. Ostrzeżenie dla danego źródła gaśnie, gdy temperatura pozostaje poniżej progu przez 2 s albo odczyt traci ważność przez 2 s. Próbka CAN starsza niż 3 s jest uznawana za nieważną.
 
@@ -552,7 +552,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.26**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.27**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

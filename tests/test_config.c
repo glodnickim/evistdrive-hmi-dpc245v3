@@ -596,6 +596,8 @@ static void test_preferences(void) {
     evist_preferences_defaults(&p0);
     check(p0.temp_view == EVIST_TEMP_BOTH && (p0.panel_mask & (1u << 9)) == 0u,
           "TEMP defaults: BOTH and pair hidden");
+    check(p0.motor_temp_limit_c == 75u && p0.ctrl_temp_limit_c == 70u,
+          "TEMP limits default: motor 75 C, controller 70 C");
     check(p0.graph_scale_w == 600u && evist_preferences_validate(&p0), "POWER GRAPH default 600 W");
     {
         evist_ride_cfg_t ride = evist_ride_defaults();

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 PROJECT := evistdrive_hmi
-VERSION := 10.26
+VERSION := 10.27
 BUILD := build
 DIST := dist
 ARM_CC ?= clang

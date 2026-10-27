@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.27
+
+- Temperature warnings are on by default: the motor warns at 75°C and the controller at 70°C. Choose `OFF` in DISPLAY → TEMP VIEW to disable either one.
+- As with every new version, display options return to their defaults at the first start, so the new limits apply right after the update; the odometer, ride times and error history are kept.
+
 ## 10.26
 
 - UP now stops at the highest enabled assistance mode; DOWN still reaches ASSIST OFF from the lowest mode.

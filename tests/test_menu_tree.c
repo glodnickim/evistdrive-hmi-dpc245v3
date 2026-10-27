@@ -274,6 +274,8 @@ int main(void) {
         dpc245_app_t app;
         memset(&app, 0, sizeof(app));
         dpc245_app_init(&app, &settings);
+        app.preferences.motor_temp_limit_c = 0u; /* start the edit from OFF */
+        app.preferences.ctrl_temp_limit_c = 0u;
         enter_branch(&app, 0u);
         down(&app, 4u); /* DISPLAY -> TEMP VIEW */
         dpc245_app_key(&app, DPC245_APP_KEY_POWER);

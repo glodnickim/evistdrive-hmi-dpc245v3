@@ -490,7 +490,7 @@ static void test_temperature_limits(void){
           loaded.preferences.ctrl_temp_limit_c==0u,"earlier record defaults limits OFF");
     memory[newest+109u]=39u;record_crc(newest);
     check(evist_native_store_init(&reboot,&io,&loaded)&&reboot.page!=store.page&&
-          loaded.preferences.motor_temp_limit_c==0u,"invalid limit record rejected");
+          loaded.preferences.motor_temp_limit_c==75u,"invalid limit record rejected");
     puts("temperature limit store round trip, earlier image, invalid value checked");
 }
 static void test_erase_wait_deadline(void){

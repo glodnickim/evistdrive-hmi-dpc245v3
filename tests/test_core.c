@@ -625,6 +625,8 @@ static void splash_crc_emit(void *ctx, uint16_t pixel, uint8_t count) {
 static void test_temperature_warning(void) {
     dpc245_settings_t settings;dpc245_settings_defaults(&settings);
     dpc245_app_t app;dpc245_app_init(&app,&settings);
+    assert(app.preferences.motor_temp_limit_c==75u&&app.preferences.ctrl_temp_limit_c==70u); /* defaults */
+    app.preferences.motor_temp_limit_c=0u;app.preferences.ctrl_temp_limit_c=0u;
     bafang_telemetry_t sample={0};
     sample.have_motor_temp=true;sample.have_controller_temp=true;
     sample.controller_aux_temp_raw=160u;sample.controller_temp_raw=140u;

@@ -4,7 +4,7 @@
 
 **Documentation version:** Draft 1.0, October 15, 2026
 
-**Reference firmware:** EVistDrive HMI **10.26**, development candidate awaiting device testing.
+**Reference firmware:** EVistDrive HMI **10.27**, development candidate awaiting device testing.
 
 **Interface language:** English. This manual preserves the exact option names displayed on the device.
 
@@ -243,7 +243,7 @@ Example: To cycle only among `TRIP+ODO`, `WATT+TMP` and `RNG+VOLT`, leave only t
 
 `BOTH` allows the `TEMP` panel to show motor and controller temperatures together. `ALTERNATE` changes the selected source about every 3 seconds in single-temperature fields. `TEMP 1` refers to the controller and `TEMP 2` to the motor according to the implemented UI selector; recheck this mapping whenever updating the manual.
 
-**Defaults:** `BOTH` and both warning limits `OFF`. The thresholds activate a visual alert; **they do not control motor current or power reduction**. Use values appropriate to the available sensors and the drive manufacturer's specifications.
+**Defaults:** `BOTH`, `MOTOR LIMIT` 75°C and `CTRL LIMIT` 70°C (select `OFF` to disable a warning). The thresholds activate a visual alert; **they do not control motor current or power reduction**. Use values appropriate to the available sensors and the drive manufacturer's specifications.
 
 If an enabled threshold is exceeded for approximately **2 seconds**, `MOTOR HOT`, `CTRL HOT` or `MOTOR+CTRL HOT` appears and the speed digits turn red. The text disappears after approximately 3 seconds; the red speed remains until the alert clears. An alert for a particular source clears after the temperature stays below the threshold for 2 seconds, or after the reading has been invalid for 2 seconds. A CAN temperature sample older than 3 seconds is treated as invalid.
 
@@ -552,7 +552,7 @@ This manual was developed primarily from the actual UI labels, button handling a
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – technical project documentation;
 - `README.md` – release and version information.
 
-**Version note:** the current version (**10.26**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
+**Version note:** the current version (**10.27**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
 
 **Before marking this manual as verified:** The project maintainer should compare this manual with the current `HEAD`, resolve inconsistencies and generate/verify simulator screenshots. In particular, the following require physical hardware verification: `AUTO OFF` behavior, the direction of the `ACCELERATION` scale, how `BACKLIGHT → LEVEL` affects actual brightness, details of Standard Walk operation, and successful application of RIDE settings with a specific controller. Do not present these as hardware-verified facts until they have been tested.
 

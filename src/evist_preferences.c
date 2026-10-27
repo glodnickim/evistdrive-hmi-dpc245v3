@@ -22,8 +22,8 @@ void evist_preferences_defaults(evist_preferences_t *p) {
     p->assist_mode_mask = EVIST_ASSIST_MODE_MASK_ALL;
     p->lower_panel = 0u;
     p->temp_view = EVIST_TEMP_BOTH;
-    p->motor_temp_limit_c = 0u;
-    p->ctrl_temp_limit_c = 0u;
+    p->motor_temp_limit_c = 75u;
+    p->ctrl_temp_limit_c = 70u;
     p->firmware_profile = EVIST_PROFILE_BAFANG;
     p->graph_scale_w = EVIST_PREF_GRAPH_DEFAULT_W;
     p->battery_mask = (uint8_t)(EVIST_BATTERY_ALL & (uint8_t)~EVIST_BATTERY_BAR);
