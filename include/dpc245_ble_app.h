@@ -12,6 +12,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define DPC245_BLE_FIRST_DOWNLOAD_DELAY_MS 2000u
+#define DPC245_BLE_RETRY_INTERVAL_MS 3000u
+#define DPC245_BLE_RETRY_ROUNDS 5u
+
 #define DPC245_BLE_A1_SIZE 255u
 #define DPC245_BLE_A2_SIZE 255u
 #define DPC245_BLE_A3_SIZE 237u
@@ -47,6 +51,11 @@ typedef struct {
     uint8_t start_angle[2];
     uint8_t stage_attempts;
     uint8_t pending_write;      /* 0=none, 1=P1, 2=P0 */
+    uint32_t controller_seen_at;
+    uint32_t download_started_at;
+    uint8_t retry_rounds;
+    bool seen_time_recorded;
+    bool retry_requested;
     bool per_level;
     bool discovery_done;
     bool controller_seen;

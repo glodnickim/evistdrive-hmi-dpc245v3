@@ -36,6 +36,8 @@ The checksum is the 8-bit additive checksum used by `dpc245_ble_proto.c`. The pa
 
 Fields with a stable product contract are represented by typed application state. Bytes without a stable product label are retained byte-for-byte in fixed-size compatibility blocks; the firmware does not assign speculative meanings to them.
 
+The controller-data download starts at least 2 seconds after the controller appears. Failed items are retried when the phone reads A3 or A9, for at most 5 rounds at least 3 seconds apart.
+
 ## Periodic status
 
 Every 500 ms the application can publish a `10/11/06/01` packet with a 39-byte status payload. It contains current assist/light state and available ride telemetry/statistics. The scheduler is latest-only and does not create a backlog.

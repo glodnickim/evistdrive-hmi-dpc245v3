@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.27**, wersja robocza do testu na urządzeniu.
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.28**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -552,7 +552,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.27**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.28**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

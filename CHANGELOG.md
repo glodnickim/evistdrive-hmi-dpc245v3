@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.28
+
+- The phone app can get motor settings when the motor answers late after power-on.
+- The display retries a few times while the phone asks for settings.
+
 ## 10.27
 
 - Temperature warnings are on by default: the motor warns at 75°C and the controller at 70°C. Choose `OFF` in DISPLAY → TEMP VIEW to disable either one.

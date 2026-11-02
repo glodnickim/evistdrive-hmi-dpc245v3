@@ -38,40 +38,41 @@ static void test_download(void) {
     dpc245_ble_app_t b; dpc245_ble_app_init(&b);
     evist_ctrl_txn_t t; evist_ctrl_txn_init(&t);
     b.controller_seen = true;
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 0u));
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 0u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2000u));
     bafang_can_frame_t f;
-    assert(evist_ctrl_txn_next_tx(&t, 0u, &f));
+    assert(evist_ctrl_txn_next_tx(&t, 2000u, &f));
     assert(bafang_can_id_decode(f.id).cmd == 0xF2u);
     stage_result(&b, &t, EVIST_TXN_DISCOVER_ACCEL, EVIST_TXN_NO_READBACK, NULL);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 700u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2700u));
     stage_result(&b, &t, EVIST_TXN_DISCOVER_ACCEL, EVIST_TXN_NO_READBACK, NULL);
     assert(b.download_stage == 1u && !b.per_level);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 1400u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3400u));
     assert(b.download_status[5] == 1u);
-    assert(evist_ctrl_txn_next_tx(&t, 1400u, &f));
+    assert(evist_ctrl_txn_next_tx(&t, 3400u, &f));
     assert(bafang_can_id_decode(f.id).sub == 0x11u);
     stage_result(&b, &t, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
     assert(b.download_status[5] == 3u && b.p1[40] == 0x0Fu);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 1500u));
-    assert(evist_ctrl_txn_next_tx(&t, 1500u, &f));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3500u));
+    assert(evist_ctrl_txn_next_tx(&t, 3500u, &f));
     assert(bafang_can_id_decode(f.id).sub == 0x12u);
     stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P2, EVIST_TXN_NO_READBACK, NULL);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2600u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 4600u));
     stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P2, EVIST_TXN_NO_READBACK, NULL);
     assert(b.download_status[6] == 4u && b.download_stage == 3u);
-    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3700u));
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 5700u));
     assert(b.download_stage == 4u && b.download_status[4] == 0u);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3800u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 5800u));
     assert(b.download_status[7] == 1u);
     bafang_can_frame_t angle_reply = motor_frame(BAFANG_CAN_OP_NORMAL_ACK, 0x62u, 0xD9u);
     angle_reply.dlc = 2u; angle_reply.data[0] = 4u; angle_reply.data[1] = 0u;
-    evist_ctrl_txn_on_frame(&t, &angle_reply, 3800u); /* reply before our READ is ignored */
+    evist_ctrl_txn_on_frame(&t, &angle_reply, 5800u); /* reply before our READ is ignored */
     assert(evist_ctrl_txn_busy(&t));
-    assert(evist_ctrl_txn_next_tx(&t, 3800u, &f));
+    assert(evist_ctrl_txn_next_tx(&t, 5800u, &f));
     bafang_can_id_t angle_read = bafang_can_id_decode(f.id);
     assert(angle_read.src == BAFANG_NODE_HMI && angle_read.dst == BAFANG_NODE_CONTROLLER &&
            angle_read.type == BAFANG_CAN_OP_READ && angle_read.cmd == 0x62u && angle_read.sub == 0xD9u);
-    evist_ctrl_txn_on_frame(&t, &angle_reply, 3802u);
+    evist_ctrl_txn_on_frame(&t, &angle_reply, 5802u);
     evist_txn_kind_t angle_kind; evist_txn_result_t angle_result; uint8_t angle_data[64] = {0};
     assert(evist_ctrl_txn_take_result(&t, &angle_kind, &angle_result, angle_data));
     assert(angle_kind == EVIST_TXN_READ_START_ANGLE && angle_result == EVIST_TXN_OK);
@@ -80,28 +81,29 @@ static void test_download(void) {
     assert(b.download_stage == 5u);
 
     dpc245_ble_app_init(&b); evist_ctrl_txn_init(&t); b.controller_seen = true;
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 0u));
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 0u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2000u));
     stage_result(&b, &t, EVIST_TXN_DISCOVER_ACCEL, EVIST_TXN_OK, NULL);
     assert(b.per_level && b.download_stage == 1u);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 1u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2001u));
     stage_result(&b, &t, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
     uint8_t p2[64] = {0}; p2[54] = 7u; p2[63] = evist_assist_checksum(p2);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2002u));
     stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P2, EVIST_TXN_OK, p2);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3u));
-    assert(evist_ctrl_txn_next_tx(&t, 3u, &f));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2003u));
+    assert(evist_ctrl_txn_next_tx(&t, 2003u, &f));
     assert(bafang_can_id_decode(f.id).sub == 0x10u);
     uint8_t p0[64] = {0};
     for (uint8_t i = 1u; i <= 9u; ++i) p0[i] = i < 8u ? i : 8u;
     stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
     assert(b.download_stage == 4u && b.download_status[4] == 3u);
-    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 4u));
-    assert(evist_ctrl_txn_next_tx(&t, 4u, &f));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2004u));
+    assert(evist_ctrl_txn_next_tx(&t, 2004u, &f));
     angle_read = bafang_can_id_decode(f.id);
     assert(angle_read.cmd == 0x62u && angle_read.sub == 0xD9u);
     angle_reply = motor_frame(BAFANG_CAN_OP_NORMAL_ACK, 0x62u, 0xD9u);
     angle_reply.dlc = 2u; angle_reply.data[0] = 4u; angle_reply.data[1] = 0u;
-    evist_ctrl_txn_on_frame(&t, &angle_reply, 5u);
+    evist_ctrl_txn_on_frame(&t, &angle_reply, 2005u);
     assert(evist_ctrl_txn_take_result(&t, &angle_kind, &angle_result, angle_data));
     assert(angle_result == EVIST_TXN_OK);
     dpc245_ble_app_on_controller_result(&b, angle_kind, angle_result, angle_data);
@@ -125,6 +127,97 @@ static void test_download(void) {
            b.a9[83] == 4u && b.a9[84] == 0u && b.a9[85] == 7u && b.a9[86] == 1u);
     assert(b.a9[96] == p1_log[49] && b.a9[106] == p1_log[40]);
     puts("download order/status and A3/A9 fixture PASS");
+}
+
+static void phone_read(dpc245_ble_app_t *b, uint8_t command) {
+    dpc245_settings_t settings; dpc245_settings_defaults(&settings);
+    dpc245_app_t app; dpc245_app_init(&app, &settings);
+    evist_can_router_t router; evist_can_router_init(&router);
+    dpc245_ble_app_result_t result;
+    dpc245_ble_frame_t q = {0};
+    q.class_id = 0x11u; q.command_id = command; q.operation = 1u;
+    assert(dpc245_ble_app_handle(b, &q, &app, &router, NULL, false, NULL, &result));
+    assert(result.have_tx);
+}
+
+static void test_download_retry(void) {
+    dpc245_ble_app_t b; dpc245_ble_app_init(&b);
+    evist_ctrl_txn_t t; evist_ctrl_txn_init(&t);
+    bafang_can_frame_t f;
+    uint8_t block[64] = {0};
+    b.controller_seen = true;
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 100u));
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2099u));
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2100u));
+    stage_result(&b, &t, EVIST_TXN_DISCOVER_ACCEL, EVIST_TXN_OK, NULL);
+    for (unsigned i = 0; i < 2; ++i) {
+        assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2101u + i));
+        stage_result(&b, &t, EVIST_TXN_READ_ASSIST, EVIST_TXN_NO_READBACK, NULL);
+    }
+    assert(b.download_status[5] == 4u);
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2103u));
+    stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P2, EVIST_TXN_OK, block);
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2104u));
+    stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, block);
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 2105u));
+    stage_result(&b, &t, EVIST_TXN_READ_START_ANGLE, EVIST_TXN_OK, block);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 9000u));
+    assert(!evist_ctrl_txn_next_tx(&t, 9000u, &f));
+    phone_read(&b, 0xA3u);
+    for (unsigned i = 215u; i < 234u; ++i) assert(b.a3[i] == 0u);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 5099u));
+    phone_read(&b, 0xA3u);
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 5100u));
+    assert(evist_ctrl_txn_next_tx(&t, 5100u, &f));
+    assert(bafang_can_id_decode(f.id).sub == 0x11u);
+    stage_result(&b, &t, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 5101u));
+    assert(b.download_stage == 5u && b.download_status[6] == 3u && b.download_status[7] == 3u);
+    phone_read(&b, 0xA3u); phone_read(&b, 0xA9u);
+    for (unsigned i = 0; i < 9; ++i) {
+        assert(b.a3[215u+i] == p1_log[49u+i] && b.a3[225u+i] == p1_log[40u+i]);
+        assert(b.a9[96u+i] == p1_log[49u+i] && b.a9[106u+i] == p1_log[40u+i]);
+    }
+    b.download_status[5] = 4u;
+    for (unsigned round = 1u; round < 5u; ++round) {
+        uint32_t now = 5100u + round * 3000u;
+        phone_read(&b, 0xA9u);
+        for (unsigned attempt = 0; attempt < 2; ++attempt) {
+            assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, now + attempt));
+            stage_result(&b, &t, EVIST_TXN_READ_ASSIST, EVIST_TXN_NO_READBACK, NULL);
+        }
+        assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, now + 2u));
+    }
+    assert(b.retry_rounds == 5u);
+    phone_read(&b, 0xA3u);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 20100u));
+    assert(!evist_ctrl_txn_next_tx(&t, 20100u, &f));
+    /* A page read can satisfy a pending phone request before the retry starts. */
+    dpc245_ble_app_init(&b); evist_ctrl_txn_init(&t);
+    b.controller_seen = true; b.download_stage = 5u; b.per_level = true;
+    b.download_status[5] = 4u;
+    phone_read(&b, 0xA3u);
+    dpc245_ble_app_capture_adv_result(&b, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 6000u));
+    assert(!b.retry_requested && b.retry_rounds == 0u);
+    /* Global mode retries discovery and failed P2 when demanded. */
+    dpc245_ble_app_init(&b); evist_ctrl_txn_init(&t);
+    b.controller_seen = true; b.download_stage = 5u;
+    b.download_status[5] = b.download_status[7] = 3u; b.download_status[6] = 4u;
+    phone_read(&b, 0xA9u);
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3000u));
+    assert(t.kind == EVIST_TXN_DISCOVER_ACCEL);
+    for (unsigned i = 0; i < 2; ++i) {
+        stage_result(&b, &t, EVIST_TXN_DISCOVER_ACCEL, EVIST_TXN_NO_READBACK, NULL);
+        if (i == 0) assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3001u));
+    }
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3002u));
+    assert(t.kind == EVIST_TXN_READ_ACCEL_P2);
+    stage_result(&b, &t, EVIST_TXN_READ_ACCEL_P2, EVIST_TXN_OK, block);
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3003u));
+    assert(!dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 3004u));
+    assert(b.download_stage == 5u);
+    puts("phone download delay and bounded retries PASS");
 }
 
 static void test_app_write(void) {
@@ -369,7 +462,8 @@ static void test_assist_startup_interleaving(void) {
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
     evist_ctrl_txn_t txn; evist_ctrl_txn_init(&txn);
     b.controller_seen = true;
-    assert(dpc245_ble_app_start_controller(&b, &txn, prefs.firmware_profile, 0u));
+    assert(!dpc245_ble_app_start_controller(&b, &txn, prefs.firmware_profile, 0u));
+    assert(dpc245_ble_app_start_controller(&b, &txn, prefs.firmware_profile, 2000u));
     assert(txn.kind == EVIST_TXN_DISCOVER_ACCEL);
     /* Startup P1 has completed while the page READ is still queued. */
     evist_ctrl_txn_init(&txn);
@@ -640,6 +734,7 @@ static void test_accel_page_edit(void) {
 int main(void) {
     assert(evist_assist_checksum(p1_log) == p1_log[63]);
     test_download();
+    test_download_retry();
     test_start_angle_timeout();
     test_app_write();
     test_assist_startup_interleaving();

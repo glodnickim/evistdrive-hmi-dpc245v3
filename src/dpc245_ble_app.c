@@ -211,12 +211,22 @@ static bool queue_motor_write(dpc245_ble_app_t *b, uint8_t which,
 }
 #endif
 
+static bool download_failed(const dpc245_ble_app_t *b) {
+    return b->download_status[5] == 4u || b->download_status[7] == 4u ||
+           (b->per_level ? b->download_status[4] == 4u : b->download_status[6] == 4u);
+}
+
 bool dpc245_ble_app_start_controller(dpc245_ble_app_t *b, evist_ctrl_txn_t *txn,
                                      evist_firmware_profile_t profile, uint32_t now) {
 #if !EVIST_ENABLE_CONFIG_WRITES
     (void)profile;
 #endif
-    if (!b || !txn || !b->controller_seen || b->controller_txn_active || evist_ctrl_txn_busy(txn)) return false;
+    if (!b || !txn || !b->controller_seen) return false;
+    if (!b->seen_time_recorded) {
+        b->controller_seen_at = now;
+        b->seen_time_recorded = true;
+    }
+    if (b->controller_txn_active || evist_ctrl_txn_busy(txn)) return false;
     bool started = false;
     b->active_is_write = false;
     if (b->pending_write != 0u) {
@@ -230,7 +240,33 @@ bool dpc245_ble_app_start_controller(dpc245_ble_app_t *b, evist_ctrl_txn_t *txn,
             b->download_status[b->pending_write == 1u ? 5u : 4u] = 4u;
             b->pending_write = 0u;
         }
-    } else if (b->download_stage < 5u) {
+    } else {
+        if (b->download_stage >= 5u && b->retry_requested) {
+            if (!download_failed(b)) b->retry_requested = false;
+            else if (b->retry_rounds < DPC245_BLE_RETRY_ROUNDS &&
+                     (uint32_t)(now - b->download_started_at) >= DPC245_BLE_RETRY_INTERVAL_MS) {
+                b->retry_requested = false;
+                ++b->retry_rounds;
+                b->download_started_at = now;
+                b->download_stage = b->per_level ? 1u : 0u;
+                b->stage_attempts = 0u;
+            }
+        }
+        if (b->download_stage >= 5u) return false;
+        if (b->retry_rounds == 0u && b->download_stage == 0u && b->stage_attempts == 0u) {
+            if ((uint32_t)(now - b->controller_seen_at) < DPC245_BLE_FIRST_DOWNLOAD_DELAY_MS) return false;
+            b->download_started_at = now;
+        }
+        if (b->retry_rounds != 0u) {
+            while (b->download_stage < 5u) {
+                uint8_t stage = b->download_stage;
+                if (stage == 0u || (stage == 3u && !b->per_level)) break;
+                uint8_t index = stage == 1u ? 5u : stage == 2u ? 6u : stage == 3u ? 4u : 7u;
+                if (b->download_status[index] != 3u) break;
+                ++b->download_stage;
+            }
+            if (b->download_stage >= 5u) return false;
+        }
         switch (b->download_stage) {
         case 0u: started = evist_ctrl_txn_discover_accel(txn, now); break;
         case 1u: b->download_status[5] = 1u; started = evist_ctrl_txn_read_assist(txn, now); break;
@@ -507,6 +543,7 @@ bool dpc245_ble_app_handle(dpc245_ble_app_t *b,
         break;
     case 0xA3u:
         if (request->operation == 0x01u) {
+            if (b->download_stage >= 5u && download_failed(b)) b->retry_requested = true;
             refresh_a3(b, app, router);
             handled = read_block(result, request, b->a3, sizeof(b->a3));
         } else if (request->operation == 0x02u) {
@@ -553,6 +590,7 @@ bool dpc245_ble_app_handle(dpc245_ble_app_t *b,
         break;
     case 0xA9u:
         if (request->operation == 0x01u) {
+            if (b->download_stage >= 5u && download_failed(b)) b->retry_requested = true;
             refresh_a9(b, app);
             handled = read_block(result, request, b->a9, sizeof(b->a9));
         } else if (request->operation == 0x02u) {

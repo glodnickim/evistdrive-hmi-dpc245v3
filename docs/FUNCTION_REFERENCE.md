@@ -2,7 +2,7 @@
 
 This file is generated from the current source tree and is part of the release gate. Every C function definition, including static helpers, interrupt handlers and freestanding runtime functions, is listed here.
 
-- Function definitions: **734**
+- Function definitions: **735**
 - Source files: **53**
 
 ## `platform/dpc245/bxcan_raw.c`
@@ -3387,7 +3387,7 @@ Functions: **3**
 
 Module implementation.
 
-Functions: **28**
+Functions: **29**
 
 ### `zero_bytes`
 
@@ -3515,18 +3515,27 @@ Functions: **28**
 - Direct callers: `dpc245_ble_app_handle`
 - Direct callees: `copy_bytes`, `evist_assist_checksum`, `evist_assist_write_allowed`
 
-### `dpc245_ble_app_start_controller`
+### `download_failed`
 
 - Location: `src/dpc245_ble_app.c:214`
+- Linkage: `static`
+- Type: `_Bool (const dpc245_ble_app_t *)`
+- Responsibility: Internal helper of the dpc245_ble_app module.
+- Direct callers: `dpc245_ble_app_handle`, `dpc245_ble_app_start_controller`
+- Direct callees: —
+
+### `dpc245_ble_app_start_controller`
+
+- Location: `src/dpc245_ble_app.c:219`
 - Linkage: `global`
 - Type: `_Bool (dpc245_ble_app_t *, evist_ctrl_txn_t *, evist_firmware_profile_t, uint32_t)`
 - Responsibility: Start operation in the dpc245_ble_app module.
 - Direct callers: `controller_config_service`
-- Direct callees: `evist_ctrl_txn_busy`, `evist_ctrl_txn_discover_accel`, `evist_ctrl_txn_read_accel_p0`, `evist_ctrl_txn_read_accel_p2`, `evist_ctrl_txn_read_assist`, `evist_ctrl_txn_read_start_angle`, `evist_ctrl_txn_write_app_p0`, `evist_ctrl_txn_write_app_p1`
+- Direct callees: `download_failed`, `evist_ctrl_txn_busy`, `evist_ctrl_txn_discover_accel`, `evist_ctrl_txn_read_accel_p0`, `evist_ctrl_txn_read_accel_p2`, `evist_ctrl_txn_read_assist`, `evist_ctrl_txn_read_start_angle`, `evist_ctrl_txn_write_app_p0`, `evist_ctrl_txn_write_app_p1`
 
 ### `cache_block`
 
-- Location: `src/dpc245_ble_app.c:254`
+- Location: `src/dpc245_ble_app.c:290`
 - Linkage: `static`
 - Type: `void (dpc245_ble_app_t *, evist_txn_kind_t, const uint8_t *)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3535,7 +3544,7 @@ Functions: **28**
 
 ### `dpc245_ble_app_on_controller_result`
 
-- Location: `src/dpc245_ble_app.c:279`
+- Location: `src/dpc245_ble_app.c:315`
 - Linkage: `global`
 - Type: `void (dpc245_ble_app_t *, evist_txn_kind_t, evist_txn_result_t, const uint8_t *)`
 - Responsibility: Public function of the dpc245_ble_app module.
@@ -3544,7 +3553,7 @@ Functions: **28**
 
 ### `dpc245_ble_app_capture_adv_result`
 
-- Location: `src/dpc245_ble_app.c:309`
+- Location: `src/dpc245_ble_app.c:345`
 - Linkage: `global`
 - Type: `void (dpc245_ble_app_t *, evist_txn_kind_t, evist_txn_result_t, const uint8_t *)`
 - Responsibility: Public function of the dpc245_ble_app module.
@@ -3553,7 +3562,7 @@ Functions: **28**
 
 ### `dpc245_ble_app_apply_advanced_cache`
 
-- Location: `src/dpc245_ble_app.c:323`
+- Location: `src/dpc245_ble_app.c:359`
 - Linkage: `global`
 - Type: `void (const dpc245_ble_app_t *, evist_advanced_t *)`
 - Responsibility: Apply operation in the dpc245_ble_app module.
@@ -3562,7 +3571,7 @@ Functions: **28**
 
 ### `requested_chunk_len`
 
-- Location: `src/dpc245_ble_app.c:348`
+- Location: `src/dpc245_ble_app.c:384`
 - Linkage: `static`
 - Type: `uint8_t (const dpc245_ble_frame_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3571,7 +3580,7 @@ Functions: **28**
 
 ### `read_block`
 
-- Location: `src/dpc245_ble_app.c:359`
+- Location: `src/dpc245_ble_app.c:395`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_result_t *, const dpc245_ble_frame_t *, const uint8_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3580,7 +3589,7 @@ Functions: **28**
 
 ### `write_block`
 
-- Location: `src/dpc245_ble_app.c:367`
+- Location: `src/dpc245_ble_app.c:403`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_result_t *, const dpc245_ble_frame_t *, uint8_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3589,7 +3598,7 @@ Functions: **28**
 
 ### `handle_10`
 
-- Location: `src/dpc245_ble_app.c:379`
+- Location: `src/dpc245_ble_app.c:415`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3598,7 +3607,7 @@ Functions: **28**
 
 ### `handle_a5`
 
-- Location: `src/dpc245_ble_app.c:427`
+- Location: `src/dpc245_ble_app.c:463`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, const dpc245_hmi_identity_records_t *, _Bool, dpc245_update_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3607,7 +3616,7 @@ Functions: **28**
 
 ### `dpc245_ble_app_init`
 
-- Location: `src/dpc245_ble_app.c:466`
+- Location: `src/dpc245_ble_app.c:502`
 - Linkage: `global`
 - Type: `void (dpc245_ble_app_t *)`
 - Responsibility: Initialization in the dpc245_ble_app module.
@@ -3616,16 +3625,16 @@ Functions: **28**
 
 ### `dpc245_ble_app_handle`
 
-- Location: `src/dpc245_ble_app.c:471`
+- Location: `src/dpc245_ble_app.c:507`
 - Linkage: `global`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, evist_can_router_t *, const dpc245_hmi_identity_records_t *, _Bool, dpc245_update_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Public function of the dpc245_ble_app module.
 - Direct callers: `main`
-- Direct callees: `handle_10`, `handle_a5`, `queue_motor_write`, `read_block`, `refresh_a3`, `refresh_a9`, `write_block`, `zero_bytes`
+- Direct callees: `download_failed`, `handle_10`, `handle_a5`, `queue_motor_write`, `read_block`, `refresh_a3`, `refresh_a9`, `write_block`, `zero_bytes`
 
 ### `dpc245_ble_app_build_periodic`
 
-- Location: `src/dpc245_ble_app.c:601`
+- Location: `src/dpc245_ble_app.c:639`
 - Linkage: `global`
 - Type: `size_t (uint8_t *, size_t, const dpc245_app_t *, const evist_can_router_t *, _Bool)`
 - Responsibility: Frame or record construction in the dpc245_ble_app module.
@@ -3634,7 +3643,7 @@ Functions: **28**
 
 ### `dpc245_ble_app_take_hmi_event_bits`
 
-- Location: `src/dpc245_ble_app.c:642`
+- Location: `src/dpc245_ble_app.c:680`
 - Linkage: `global`
 - Type: `uint8_t (dpc245_ble_app_t *)`
 - Responsibility: Consume-once accessor in the dpc245_ble_app module.
