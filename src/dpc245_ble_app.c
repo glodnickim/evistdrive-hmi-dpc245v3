@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "dpc245_ble_app.h"
+#include "board_config.h"
 #include "bafang_can.h"
 #include "dpc245_settings.h"
 #include "app_config.h"
@@ -124,9 +125,9 @@ static void refresh_a5(dpc245_ble_app_t *b,
                        bool light_on) {
     if (!b || !app) return;
     uint8_t *p = b->a5;
-    static const char hw[] = "DP C245.C 3.0";
-    static const char sw[] = "DPC245CF80301.2";
-    static const char model[] = "DP C245.CAN";
+    static const char hw[] = EVIST_BOARD_ID_HW;
+    static const char sw[] = EVIST_BOARD_ID_SW;
+    static const char model[] = EVIST_BOARD_ID_MODEL;
     static const char maker[] = "BAFANG";
 
     copy_text_field(&p[0], 24u, hw);

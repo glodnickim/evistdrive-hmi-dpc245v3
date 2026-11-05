@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "dpc245_spi_mem.h"
+#include "board_config.h"
 #include <stdint.h>
 
 #define REG32(a) (*(volatile uint32_t *)(uintptr_t)(a))
@@ -191,8 +192,8 @@ bool dpc245_spi_mem_erase_allowed(uint32_t address) {
 bool dpc245_spi_mem_erase_start(uint32_t address) {
     if (!dpc245_spi_mem_erase_allowed(address)) return false;
     uint8_t id[3];
-    if (!dpc245_spi_mem_read_jedec_id(id) || id[0] != 0x85u ||
-        id[1] != 0x60u || id[2] != 0x15u) return false;
+    if (!dpc245_spi_mem_read_jedec_id(id) || id[0] != EVIST_BOARD_SPI_JEDEC_0 ||
+        id[1] != EVIST_BOARD_SPI_JEDEC_1 || id[2] != EVIST_BOARD_SPI_JEDEC_2) return false;
     operation_begin();
     spi_fault = false;
     if (!wait_not_busy() || !write_enable()) return false;

@@ -1,8 +1,15 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 PROJECT := evistdrive_hmi
 VERSION := 10.29
-BUILD := build
-DIST := dist
+# Display target: boards/<target>/ holds everything that differs between displays.
+TARGET ?= dpc245_v3
+BOARD_DIR := boards/$(TARGET)
+ifeq ($(wildcard $(BOARD_DIR)/board.mk),)
+$(error unknown TARGET "$(TARGET)": no $(BOARD_DIR)/board.mk)
+endif
+include $(BOARD_DIR)/board.mk
+BUILD := build/$(TARGET)
+DIST := dist/$(TARGET)
 ARM_CC ?= clang
 ARM_OBJCOPY ?= llvm-objcopy
 HOST_CC ?= clang
@@ -16,7 +23,7 @@ GIT_COMMIT := $(shell git log -1 --format=%h --abbrev=10 -- . 2>/dev/null | grep
 GIT_DIRTY := $(shell git diff --quiet HEAD -- . 2>/dev/null || echo -DIRTY)
 GIT_ID := $(GIT_COMMIT)$(GIT_DIRTY)
 
-INCLUDES := -Iinclude -Iplatform/dpc245
+INCLUDES := -Iinclude -Iplatform/dpc245 -I$(BOARD_DIR)
 FW_SOURCES := $(sort $(wildcard src/*.c) $(wildcard platform/dpc245/*.c))
 HOST_MODULES := \
  src/advanced_settings.c src/assist_profile.c src/bafang_can.c src/dpc245_clock_tree.c src/bafang_config.c src/bafang_service.c \
@@ -102,7 +109,7 @@ check: clean validate test firmware debug recovery-fault probe update update-ful
 	@echo "EVistDrive HMI: all checks passed"
 
 clean:
-	rm -rf $(BUILD) $(DIST)
+	rm -rf build dist
 
 # Host screen preview: renders the real dashboard/menu code into 320x170 frames,
 # then writes sim/out/index.html with pixel coordinates (no hardware, no flashing).
@@ -147,11 +154,11 @@ package: check
 
 update: firmware
 	$(NO_TEMPLATE)
-	$(PYTHON) tools/build_update_image.py --short --app $(BUILD)/$(PROJECT).bin --out $(BUILD)/EVistDrive_HMI_$(VERSION)_Update.bin
-	$(PYTHON) tools/build_update_image.py --inspect $(BUILD)/EVistDrive_HMI_$(VERSION)_Update.bin
+	$(PYTHON) tools/build_update_image.py --short --app $(BUILD)/$(PROJECT).bin --out $(BUILD)/EVistDrive_HMI_$(BOARD_LABEL)_$(VERSION)_Update.bin
+	$(PYTHON) tools/build_update_image.py --inspect $(BUILD)/EVistDrive_HMI_$(BOARD_LABEL)_$(VERSION)_Update.bin
 
 # Full layout: header, application and blank fill (docs/BUILD_AND_RELEASE.md).
 update-full: firmware
 	$(NO_TEMPLATE)
-	$(PYTHON) tools/build_update_image.py --app $(BUILD)/$(PROJECT).bin --out $(BUILD)/EVistDrive_HMI_$(VERSION)_Update_full.bin
-	$(PYTHON) tools/build_update_image.py --inspect $(BUILD)/EVistDrive_HMI_$(VERSION)_Update_full.bin
+	$(PYTHON) tools/build_update_image.py --app $(BUILD)/$(PROJECT).bin --out $(BUILD)/EVistDrive_HMI_$(BOARD_LABEL)_$(VERSION)_Update_full.bin
+	$(PYTHON) tools/build_update_image.py --inspect $(BUILD)/EVistDrive_HMI_$(BOARD_LABEL)_$(VERSION)_Update_full.bin

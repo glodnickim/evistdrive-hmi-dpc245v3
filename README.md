@@ -46,13 +46,13 @@ make sim
 make update
 ```
 
-`make check` builds and tests the firmware and the installation file. `make sim` creates `sim/out/index.html`. `make update` creates `build/EVistDrive_HMI_<version>_Update.bin`: a 32-byte header followed by the application. See [BUILDING.md](docs/BUILDING.md) for setup, inspection, checksums and flashing.
+`make check` builds and tests the firmware and the installation file. `make sim` creates `sim/out/index.html`. `make update` creates `build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin`: a 32-byte header followed by the application. See [BUILDING.md](docs/BUILDING.md) for setup, inspection, checksums and flashing.
 
 Installation uses the BESST update workflow; the display's own updater is never overwritten, and the application has update entry paths by key chord, BLE and CAN. Do not interrupt a transfer. Read the [build and release guide](docs/BUILD_AND_RELEASE.md) before installing an image.
 
 ## Repository layout
 
-`include/` contains interfaces, `src/` the application, `platform/dpc245/` MCU drivers and startup, `sim/` the host display renderer, `tests/` host tests, `tools/` build utilities, and `docs/` technical specifications.
+`include/` contains interfaces, `src/` the application, `platform/dpc245/` MCU drivers and startup, `boards/` the per-display settings, `sim/` the host display renderer, `tests/` host tests, `tools/` build utilities, and `docs/` technical specifications.
 
 Contributions are welcome under the [contributing guide](CONTRIBUTING.md). The firmware is licensed under [GPL-3.0-or-later](LICENSE); bundled font licensing is in [NOTICE](NOTICE).
 

@@ -31,7 +31,7 @@ checks={
  'SYSCLK 120 MHz': has('platform/dpc245/dpc245_clock.h','DPC245_SYSCLK_HZ 120000000u'),
  'APB1 60 MHz': has('platform/dpc245/dpc245_clock.h','DPC245_APB1_HZ    60000000u'),
  'CAN 250k timing': has('platform/dpc245/dpc245_can_init.c','can_init_btr(0x00340017u)'),
- 'BLE 230400 timing': has('platform/dpc245/dpc245_ble_uart.c','ble_uart_init_brr(0x209u)'),
+ 'BLE 230400 timing': has('platform/dpc245/dpc245_ble_uart.c','ble_uart_init_brr(EVIST_BOARD_BLE_BRR_PLL)') and has('boards/dpc245_v3/board_config.h','#define EVIST_BOARD_BLE_BRR_PLL 0x209u'),
  'LCD 320x170': has('platform/dpc245/st7789_8080.h','DPC245_LCD_WIDTH  320u') and has('platform/dpc245/st7789_8080.h','DPC245_LCD_HEIGHT 170u'),
  'CAN TX enabled': has('include/app_config.h','#define EVIST_ENABLE_CAN_TX 1'),
  'service TX enabled': has('include/app_config.h','#define EVIST_ENABLE_SERVICE_TX 1'),

@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "dpc245_hmi_service.h"
+#include "board_config.h"
 #include <stddef.h>
 void *memset(void *s, int c, size_t n);
 
@@ -70,9 +71,9 @@ bool dpc245_hmi_service_build_read_reply(const bafang_can_frame_t *request,
     reply->sub = q.sub;
 
     switch (q.sub) {
-    case 0x00u: return make_text_reply(reply, "DP C245.C 3.0");
-    case 0x01u: return make_text_reply(reply, "DPC245CF80301.2");
-    case 0x02u: return make_text_reply(reply, "DP C245.CAN");
+    case 0x00u: return make_text_reply(reply, EVIST_BOARD_ID_HW);
+    case 0x01u: return make_text_reply(reply, EVIST_BOARD_ID_SW);
+    case 0x02u: return make_text_reply(reply, EVIST_BOARD_ID_MODEL);
     case 0x03u:
         if (id && id->serial_len) {
             copy_bytes(reply->data, id->serial, id->serial_len);

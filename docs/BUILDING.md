@@ -66,11 +66,11 @@ make screenshots
 
 ```sh
 make update
-python3 tools/build_update_image.py --inspect build/EVistDrive_HMI_<version>_Update.bin
-sha256sum build/EVistDrive_HMI_<version>_Update.bin
+python3 tools/build_update_image.py --inspect build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin
+sha256sum build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin
 ```
 
-`make update` needs no input besides this repository. The output `build/EVistDrive_HMI_<version>_Update.bin` is always 237,600 bytes (`make update-full` builds the 456,572-byte full layout). Inspection must end with `installation file: PASS` (format identifier, header fields, length, CRC, application marker and, in the full layout, blank fill); the command exits with status 1 otherwise. Do not install a file that fails inspection or has another size. Record its SHA-256 before installation, and copy the file out of `build/` before the next `make check` or `make clean`.
+`make update` needs no input besides this repository. The output `build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin` is always 237,600 bytes (`make update-full` builds the 456,572-byte full layout). Inspection must end with `installation file: PASS` (format identifier, header fields, length, CRC, application marker and, in the full layout, blank fill); the command exits with status 1 otherwise. Do not install a file that fails inspection or has another size. Record its SHA-256 before installation, and copy the file out of `build/` before the next `make check` or `make clean`.
 
 The same sources and toolchain give a byte-identical file, so a downloaded release can be checked by building its tagged commit and comparing SHA-256.
 

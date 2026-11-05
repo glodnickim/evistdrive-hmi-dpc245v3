@@ -10,13 +10,13 @@ The linker starts the application at `0x08006000` and keeps the valid marker at 
 
 ```sh
 make update
-python3 tools/build_update_image.py --inspect build/EVistDrive_HMI_<version>_Update.bin
-sha256sum build/EVistDrive_HMI_<version>_Update.bin
+python3 tools/build_update_image.py --inspect build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin
+sha256sum build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin
 ```
 
 `tools/build_update_image.py` builds the file from the application image alone; it takes no other input. The result is deterministic: the same commit and toolchain give the same SHA-256.
 
-Full layout (`make update-full`, `build/EVistDrive_HMI_<version>_Update_full.bin`, 456,572 bytes):
+Full layout (`make update-full`, `build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update_full.bin`, 456,572 bytes):
 
 | File offset | Size | Content | Origin |
 |---:|---:|---|---|
@@ -29,7 +29,7 @@ Full layout (`make update-full`, `build/EVistDrive_HMI_<version>_Update_full.bin
 
 The full layout keeps the payload length fixed for every release, so each installation transfers the same amount of data. The application never reads the blank area. `--inspect` checks every row above and exits with status 1 when a check fails; a file with any non-blank byte after the application fails inspection.
 
-Short layout (default; `make update`, `build/EVistDrive_HMI_<version>_Update.bin`, 237,600 bytes): the same header with payload length `0x0003A000` (237,568) and the CRC of the application alone, followed by the application; there is no fill, so about 52 % of the bytes of the full layout are transferred. The short layout carries data for the application area only. What the flash after the application holds after installation depends on the display's updater and is not specified here; the application never reads that area. The short layout has been installed and run on a display. The full layout has not been installed on a display; it is kept for comparison and is not published.
+Short layout (default; `make update`, `build/dpc245_v3/EVistDrive_HMI_DPC245_V3_<version>_Update.bin`, 237,600 bytes): the same header with payload length `0x0003A000` (237,568) and the CRC of the application alone, followed by the application; there is no fill, so about 52 % of the bytes of the full layout are transferred. The short layout carries data for the application area only. What the flash after the application holds after installation depends on the display's updater and is not specified here; the application never reads that area. The short layout has been installed and run on a display. The full layout has not been installed on a display; it is kept for comparison and is not published.
 
 What is not in the file: the display's resident updater (`0x08000000..0x08005FFF`) stays on the device and is never written. Interface values needed to work with the e-bike system are limited to the header constants above and the CAN identifiers, frames and identification strings described in [CAN_PROTOCOL.md](CAN_PROTOCOL.md#identity-strings); everything else in the file is this project's code and data.
 

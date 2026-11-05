@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "ui_dashboard.h"
 #include "app_config.h"
+#include "board_config.h"
 #include "minifont.h"
 #include "st7789_8080.h"
 #include "boot_splash.h"
@@ -829,7 +830,7 @@ static void draw_edit_num(const char *heading,uint32_t v,const char *unit){
 static void draw_hmi_info(const dpc245_app_t *c,const dpc245_hwinfo_t *hw,uint8_t slot,bool loaded,bool wr){
     title("HMI INFO");
     /* One value column (x 150) for every row, as value_u32 uses. */
-    m_text(7,32,"MODEL",DIM,BLACK,1);m_text(150,32,"DP C245.C 3.0",WHITE,BLACK,1);
+    m_text(7,32,"MODEL",DIM,BLACK,1);m_text(150,32,EVIST_BOARD_ID_HW,WHITE,BLACK,1);
     m_text(7,52,"APP",DIM,BLACK,1);m_text(150,52,"EVISTDRIVE " EVISTDRIVE_HMI_VERSION,WHITE,BLACK,1);
     value_u32(72,"FLASH",hw?hw->flash_kib:0u,"KIB");
     {   /* "0X" and the four hex digits as one value string. */

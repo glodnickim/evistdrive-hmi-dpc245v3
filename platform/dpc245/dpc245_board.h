@@ -2,10 +2,11 @@
 #ifndef DPC245_BOARD_H
 #define DPC245_BOARD_H
 
+#include "board_config.h"
 #include <stdbool.h>
 #include <stdint.h>
 
-/* DPC245 V3 hardware map.
+/* DPC245 hardware map, shared by the display targets in boards/.
  * MCU family: GD32F303, LQFP100, 1024 KiB Flash (MCU density register);
  * GD32F303VGT6 is the leading capacity/package candidate, but the exact order-code
  * suffix remains unconfirmed. Physical pin numbers below are package positions and
@@ -48,7 +49,7 @@
 #define DPC245_BLE_RX_PIN    10u  /* PA10, physical 69 */
 #define DPC245_USART0_BASE 0x40013800u
 #define DPC245_USART1_BASE DPC245_USART0_BASE /* alias */
-#define DPC245_BLE_BAUD 230400u
+#define DPC245_BLE_BAUD EVIST_BOARD_BLE_BAUD
 
 /* CAN0, default pin mapping PA11/PA12. */
 #define DPC245_CAN_RX_PIN    11u  /* PA11, physical 70 */

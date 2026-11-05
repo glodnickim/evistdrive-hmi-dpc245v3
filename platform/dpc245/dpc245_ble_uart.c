@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 #include "dpc245_ble_uart.h"
 #include "dpc245_board.h"
+#include "board_config.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -76,13 +77,13 @@ static void ble_uart_init_brr(uint32_t brr) {
 }
 
 void dpc245_ble_uart_init(void) {
-    /* USART1 is clocked from APB2 at 120 MHz. 0x209 gives 230400 baud. */
-    ble_uart_init_brr(0x209u);
+    /* USART1 is clocked from APB2 at 120 MHz. */
+    ble_uart_init_brr(EVIST_BOARD_BLE_BRR_PLL);
 }
 
 void dpc245_ble_uart_init_hsi(void) {
-    /* APB2 = 8 MHz HSI: 8e6 / (16 * 2.1875) = 228571 baud (-0.8 %). */
-    ble_uart_init_brr(0x23u);
+    /* APB2 = 8 MHz HSI. */
+    ble_uart_init_brr(EVIST_BOARD_BLE_BRR_HSI);
 }
 
 void dpc245_ble_uart_poll(void) {
@@ -126,6 +127,6 @@ bool dpc245_ble_uart_write(const uint8_t *data, uint16_t len, uint32_t spin_limi
 }
 
 bool dpc245_ble_uart_send_device_name_command(uint32_t spin_limit) {
-    static const uint8_t cmd[] = "AT+NAMEDP C245-30.CAN\r\n";
+    static const uint8_t cmd[] = EVIST_BOARD_RADIO_NAME_CMD;
     return dpc245_ble_uart_write(cmd, (uint16_t)(sizeof(cmd) - 1u), spin_limit);
 }

@@ -45,9 +45,9 @@ bool dpc245_hmi_identity_records_load(const dpc245_persist_io_t *io,
 /* Build the logical payload for HMI command 0x60 READ requests. The fixed
  * strings are the standard DPC245 V3 identification, answered for
  * interoperability with the controller and service tools (docs/CAN_PROTOCOL.md):
- *   00 HW           "DP C245.C 3.0"
- *   01 SW           "DPC245CF80301.2"
- *   02 Model        "DP C245.CAN"
+ *   00 HW           EVIST_BOARD_ID_HW
+ *   01 SW           EVIST_BOARD_ID_SW
+ *   02 Model        EVIST_BOARD_ID_MODEL
  *   03 Serial       external record 0x000
  *   04 Customer     external record 0x100
  *   05 Manufacturer "BAFANG"

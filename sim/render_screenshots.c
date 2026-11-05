@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: GPL-3.0-or-later */
 /* Selected public screenshots, rendered by the same UI code as make sim.
- * Usage: build/render_screenshots sim/out/screenshots
+ * Usage: build/<target>/render_screenshots sim/out/screenshots
  * make screenshots compiles this file, converts its RGB565 frames to grid-free
  * 2x PNGs, and copies the named PNGs to docs/images/. */
 

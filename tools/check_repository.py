@@ -32,9 +32,9 @@ IMAGES = [
 OUTPUT_DIRS = {'.git', 'build', 'dist', 'out'}
 BAD_DIRS = {'private', '__pycache__', '.tmp'}
 BAD_SUFFIXES = {'.bin', '.elf', '.map', '.pdf', '.jpg', '.jpeg', '.pyc', '.hex'}
-TEXT_SUFFIXES = {'.c', '.h', '.py', '.ps1', '.md', '.txt', '.yml', '.yaml', '.ld', '.json'}
+TEXT_SUFFIXES = {'.c', '.h', '.py', '.ps1', '.md', '.txt', '.yml', '.yaml', '.ld', '.json', '.mk'}
 TEXT_NAMES = {'Makefile', '.gitignore', '.gitattributes', 'NOTICE', 'LICENSE'}
-SPDX_SUFFIXES = {'.c', '.h', '.py', '.ps1', '.ld'}
+SPDX_SUFFIXES = {'.c', '.h', '.py', '.ps1', '.ld', '.mk'}
 SPDX_NAMES = {'Makefile'}
 SPDX = 'SPDX-License-Identifier: GPL-3.0-or-later'
 FONT_DATA_SPDX = 'SPDX-License-Identifier: OFL-1.1'
@@ -48,6 +48,15 @@ FLASH_ADDR = re.compile(r'\b0x080[123][0-9A-Fa-f]{4}\b')
 FLASH_ALLOWED = {'0x0803FFFD', '0x0803FFFE', '0x0803FFFF'}
 RAM_ADDR = re.compile(r'\b0x2000[0-9A-Fa-f]{4}\b')
 RAM_ALLOWED = {'0x20000000'}
+
+# Display targets: shared code stays free of per-display values and conditions.
+BOARD_MACROS = ['EVIST_BOARD_ID_HW', 'EVIST_BOARD_ID_SW', 'EVIST_BOARD_ID_MODEL',
+                'EVIST_BOARD_RADIO_NAME_CMD', 'EVIST_BOARD_BLE_BAUD', 'EVIST_BOARD_BLE_BRR_PLL',
+                'EVIST_BOARD_BLE_BRR_HSI', 'EVIST_BOARD_SPI_JEDEC_0', 'EVIST_BOARD_SPI_JEDEC_1',
+                'EVIST_BOARD_SPI_JEDEC_2']
+BOARD_VALUE = re.compile(r'"DP C24|"DPC24[0-9]CF|AT\+NAME|ble_uart_init_brr\(0x')
+BOARD_CONDITION = re.compile(r'^\s*#\s*(?:if|ifdef|ifndef|elif)\b.*\b(?:EVIST_BOARD_|EVIST_TARGET)')
+SHARED_DIRS = ('src', 'include', 'platform')
 
 errors = []
 for name in REQUIRED:
@@ -114,6 +123,28 @@ for path in sorted(ROOT.rglob('*')):
                 errors.append(f'{rel.as_posix()}:{number}: RAM address inside the window: {m.group(0)}')
         if line.rstrip() != line:
             errors.append(f'{rel.as_posix()}:{number}: trailing whitespace')
+
+boards = sorted(p for p in (ROOT / 'boards').iterdir() if p.is_dir())
+if not boards:
+    errors.append('no display target in boards/')
+for board in boards:
+    if not (board / 'board.mk').is_file():
+        errors.append(f'missing boards/{board.name}/board.mk')
+    config = board / 'board_config.h'
+    text = config.read_text(encoding='utf-8') if config.is_file() else ''
+    for macro in BOARD_MACROS:
+        if not re.search(rf'^#define {macro}\b', text, re.M):
+            errors.append(f'boards/{board.name}/board_config.h: missing {macro}')
+for folder in SHARED_DIRS:
+    for path in sorted((ROOT / folder).rglob('*')):
+        if path.suffix not in ('.c', '.h'):
+            continue
+        rel = path.relative_to(ROOT).as_posix()
+        for number, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+            if BOARD_VALUE.search(line):
+                errors.append(f'{rel}:{number}: per-display value outside boards/')
+            if BOARD_CONDITION.search(line):
+                errors.append(f'{rel}:{number}: per-display condition in shared code')
 
 if errors:
     print('repository-check: FAIL')
