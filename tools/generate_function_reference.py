@@ -48,7 +48,7 @@ MODULE_PURPOSE = {
 }
 
 def ast_for(path: Path):
-    cmd=['clang','-std=c11','-I'+str(ROOT/'include'),'-I'+str(ROOT/'platform'/'dpc245'),
+    cmd=['clang','-std=c11','-I'+str(ROOT/'include'),'-I'+str(ROOT/'platform'/'dpc245'),'-I'+str(ROOT/'boards'/'dpc245_v3'),
          '-Xclang','-ast-dump=json','-fsyntax-only',str(path)]
     p=subprocess.run(cmd,cwd=ROOT,capture_output=True,text=True)
     if p.returncode:

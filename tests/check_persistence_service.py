@@ -14,7 +14,8 @@ source = native / 'src/main.c'
 compiler = shutil.which('clang') or shutil.which('gcc')
 text = subprocess.check_output([
     compiler, '-E', '-P', '-I'+str(native/'include'),
-    '-I'+str(native/'platform/dpc245'), '-DEVIST_BUILD_PROFILE=0',
+    '-I'+str(native/'platform/dpc245'), '-I'+str(native/'boards/dpc245_v3'),
+    '-DEVIST_BUILD_PROFILE=0',
     '-DEVIST_ENABLE_PERSISTENCE=1', '-DEVIST_ENABLE_CAN_TX=1',
     '-DEVIST_ENABLE_BLE_TX=1', str(source)], text=True)
 
