@@ -63,15 +63,46 @@ BOARD_CONDITION = re.compile(r'^\s*#\s*(?:if|ifdef|ifndef|elif)\b.*'
 SHARED_DIRS = ('src', 'include', 'platform')
 
 
+def strip_comments(text):
+    """Blank C comments, keeping string and character literals and line numbers."""
+    out = []
+    index = 0
+    quote = None
+    while index < len(text):
+        char = text[index]
+        pair = text[index:index + 2]
+        if quote:
+            out.append(char)
+            if char == '\\' and index + 1 < len(text):
+                out.append(text[index + 1])
+                index += 2
+                continue
+            if char == quote or char == '\n':
+                quote = None
+            index += 1
+        elif pair == '/*':
+            end = text.find('*/', index + 2)
+            end = len(text) if end < 0 else end + 2
+            out.append(re.sub(r'[^\n]', ' ', text[index:end]))
+            index = end
+        elif pair == '//':
+            end = text.find('\n', index)
+            end = len(text) if end < 0 else end
+            out.append(' ' * (end - index))
+            index = end
+        else:
+            if char in '"\'':
+                quote = char
+            out.append(char)
+            index += 1
+    return ''.join(out)
+
+
 def board_findings(text):
     """Return (line, kind) findings in C text, ignoring comments."""
-    def blank(match):
-        return re.sub(r'[^\n]', ' ', match.group(0))
-    code = re.sub(r'/\*.*?\*/|//[^\n]*', blank, text, flags=re.S)
-    found = []
-    for number, line in enumerate(code.splitlines(), 1):
-        if BOARD_VALUE.search(line):
-            found.append((number, 'value'))
+    code = strip_comments(text)
+    found = [(code.count('\n', 0, match.start()) + 1, 'value')
+             for match in BOARD_VALUE.finditer(code)]
     # Join continued directives; a joined line keeps its first line number.
     lines = code.splitlines()
     index = 0
@@ -94,6 +125,14 @@ BOARD_RULE_CASES = [
     ('const char c[] = "AT+NAMEX\\r\\n";', ['value']),
     ('ble_uart_init_brr( 0x209u);', ['value']),
     ('ble_uart_init_brr(35u);', ['value']),
+    ('ble_uart_init_brr(\n    0x209u);', ['value']),
+    ('ble_uart_init_brr(\n    35u);', ['value']),
+    ('ble_uart_init_brr(\n    EVIST_BOARD_BLE_BRR_HSI);', []),
+    ('const char u[] = "/*";\n#if defined(EVIST_TARGET_V2)\n#endif /* end */', ['condition']),
+    ('const char u[] = "*/"; ble_uart_init_brr(0x209u);', ['value']),
+    ('const char u[] = "http://x"; const char v[] = "DP C245.CAN";', ['value']),
+    ('const char u[] = "a\\"/*"; const char v[] = "DPC245CF80301.2";', ['value']),
+    ("char q = '\"'; /* \"DP C245.C 3.0\" */", []),
     ('#if defined(DPC245_V3)', ['condition']),
     ('#ifdef EVIST_TARGET_V2', ['condition']),
     ('#if BOARD_HAS_RTC', ['condition']),
