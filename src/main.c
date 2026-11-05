@@ -369,7 +369,7 @@ int main(void){
     static evist_ride_cfg_t ride_saved;
     ride_saved=loaded_values.ride;
     dpc245_app_set_ride(&app,&ride_saved);
-    bool ride_boot_pending=true;
+    static evist_ride_boot_t ride_boot;evist_ride_boot_init(&ride_boot);
     bool ride_controller_seen=false;
 
     uint8_t brightness=dpc245_brightness_level(&app.runtime.settings);
@@ -608,27 +608,32 @@ int main(void){
                 if(app.screen==DPC245_APP_SCREEN_ADVANCED)
                     evist_advanced_set_status(&app.advanced,"SAVING DISABLED IN THIS BUILD");
 #endif
-                ride_boot_pending=false;
+                evist_ride_boot_cancel(&ride_boot);
             }
             uint16_t ride_target;
             if(ride_apply.phase==EVIST_RIDE_APPLY_IDLE &&
                dpc245_app_take_ride_apply(&app,&ride_target)){
                 evist_ride_apply_begin(&ride_apply,ride_target);
                 app.ride_apply_result=EVIST_RIDE_APPLY_READ;
-                ride_boot_pending=false;
-            }else if(ride_boot_pending && ride_controller_seen &&
-                     ride_apply.phase==EVIST_RIDE_APPLY_IDLE){
+                evist_ride_boot_cancel(&ride_boot);
+            }else if(ride_apply.phase==EVIST_RIDE_APPLY_IDLE &&
+                     evist_ride_boot_due(&ride_boot,ride_controller_seen,now)){
                 evist_ride_apply_begin(&ride_apply,app.ride_session==DPC245_RIDE_SESSION_OFFROAD?
                     app.ride_cfg.offroad_x100:app.ride_cfg.legal_x100);
                 app.ride_apply_result=EVIST_RIDE_APPLY_READ;
-                ride_boot_pending=false;
+                evist_ride_boot_started(&ride_boot);
             }
         }
 #if DPC245_APP_SERVICE_TX
         send_service_ack(&router);
 #endif
-        controller_config_service(&ctrl_txn,&app,&router,&ride_apply,&ride_txn_owner,
-                                  &ble_app,ride_controller_seen,now);
+        {
+            bool ride_busy=ride_apply.phase!=EVIST_RIDE_APPLY_IDLE;
+            controller_config_service(&ctrl_txn,&app,&router,&ride_apply,&ride_txn_owner,
+                                      &ble_app,ride_controller_seen,now);
+            if(ride_busy && ride_apply.phase==EVIST_RIDE_APPLY_IDLE)
+                evist_ride_boot_finished(&ride_boot,app.ride_apply_result,app.ride_last_error,now);
+        }
         dpc245_ble_app_apply_advanced_cache(&ble_app,&app.advanced);
         {
             evist_ride_cfg_t wheel_ride;

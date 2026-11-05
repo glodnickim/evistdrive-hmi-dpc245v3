@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.29
+
+- After power-on the display checks the motor speed limit again if the motor was not ready to answer, so LEGAL or OFFROAD is applied even when the motor starts slowly.
+- It tries every 3 seconds, up to 5 more times; until it succeeds the dashboard shows `RIDE APPLY FAILED`.
+
 ## 10.28
 
 - The phone app can get motor settings when the motor answers late after power-on.

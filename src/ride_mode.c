@@ -325,3 +325,30 @@ void evist_ride_apply_on_result(evist_ride_apply_t *a,evist_txn_result_t result,
     }
     a->phase=a->attempts<3u?EVIST_RIDE_APPLY_READ:EVIST_RIDE_APPLY_FAILED;
 }
+
+void evist_ride_boot_init(evist_ride_boot_t *b) {
+    if (!b) return;
+    b->pending=true;b->active=false;b->retries_left=EVIST_RIDE_BOOT_RETRIES;b->due_ms=0u;
+}
+
+bool evist_ride_boot_due(const evist_ride_boot_t *b,bool controller_seen,uint32_t now_ms) {
+    return b && b->pending && controller_seen && (int32_t)(now_ms-b->due_ms)>=0;
+}
+
+void evist_ride_boot_started(evist_ride_boot_t *b) {
+    if (!b) return;
+    b->pending=false;b->active=true;
+}
+
+void evist_ride_boot_cancel(evist_ride_boot_t *b) {
+    if (!b) return;
+    b->pending=false;b->active=false;
+}
+
+void evist_ride_boot_finished(evist_ride_boot_t *b,evist_ride_apply_phase_t phase,
+                              evist_txn_result_t last_result,uint32_t now_ms) {
+    if (!b || !b->active) return;
+    b->active=false;
+    if (phase!=EVIST_RIDE_APPLY_FAILED || last_result==EVIST_TXN_OK || !b->retries_left) return;
+    b->retries_left--;b->pending=true;b->due_ms=now_ms+EVIST_RIDE_BOOT_RETRY_MS;
+}

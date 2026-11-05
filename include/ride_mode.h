@@ -95,4 +95,28 @@ bool evist_ride_apply_start_txn(evist_ride_apply_t *a, evist_ctrl_txn_t *txn, ui
 void evist_ride_apply_on_result(evist_ride_apply_t *a, evist_txn_result_t result,
                                 const uint8_t data[64]);
 
+/* Start-up check of the controller speed limit against the selected mode.
+ * The first round starts as soon as the controller is heard. A controller
+ * that is not ready yet (no reply, NACK, mismatch) gets the round repeated
+ * every EVIST_RIDE_BOOT_RETRY_MS, at most EVIST_RIDE_BOOT_RETRIES times per
+ * power cycle; until then the dashboard shows RIDE APPLY FAILED. A mode
+ * change by the rider or the menu replaces the start-up check. */
+#define EVIST_RIDE_BOOT_RETRY_MS 3000u
+#define EVIST_RIDE_BOOT_RETRIES  5u
+typedef struct {
+    bool pending;  /* a round may start once the controller is heard */
+    bool active;   /* the running apply is a start-up round */
+    uint8_t retries_left;
+    uint32_t due_ms;
+} evist_ride_boot_t;
+void evist_ride_boot_init(evist_ride_boot_t *b);
+bool evist_ride_boot_due(const evist_ride_boot_t *b, bool controller_seen, uint32_t now_ms);
+void evist_ride_boot_started(evist_ride_boot_t *b);
+void evist_ride_boot_cancel(evist_ride_boot_t *b);
+/* Called once when an apply ends; only a start-up round is acted upon. A
+ * FAILED round whose last read succeeded (speed write disabled in the build)
+ * is final: repeating it cannot change the controller. */
+void evist_ride_boot_finished(evist_ride_boot_t *b, evist_ride_apply_phase_t phase,
+                              evist_txn_result_t last_result, uint32_t now_ms);
+
 #endif

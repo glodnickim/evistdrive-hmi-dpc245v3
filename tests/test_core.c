@@ -915,8 +915,47 @@ static void assist_modes_ui_tests(void) {
     assert(app.assist_level == 0u);
 }
 
+static void test_ride_boot_retry(void) {
+    evist_ride_boot_t b;evist_ride_boot_init(&b);
+    /* Nothing starts before the controller is heard. */
+    assert(!evist_ride_boot_due(&b,false,0u) && evist_ride_boot_due(&b,true,0u));
+    evist_ride_boot_started(&b);assert(!evist_ride_boot_due(&b,true,1u));
+    /* A controller that does not answer yet gets the round again later. */
+    evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_FAILED,EVIST_TXN_NO_READBACK,1000u);
+    assert(!evist_ride_boot_due(&b,true,1000u+EVIST_RIDE_BOOT_RETRY_MS-1u));
+    assert(evist_ride_boot_due(&b,true,1000u+EVIST_RIDE_BOOT_RETRY_MS));
+    /* Retries are capped per power cycle. */
+    uint32_t now=1000u;
+    for(unsigned i=0u;i<EVIST_RIDE_BOOT_RETRIES;i++){
+        now+=EVIST_RIDE_BOOT_RETRY_MS;assert(evist_ride_boot_due(&b,true,now));
+        evist_ride_boot_started(&b);
+        evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_FAILED,EVIST_TXN_NACK,now);
+    }
+    assert(!evist_ride_boot_due(&b,true,now+100000u));
+    /* Success ends the start-up check. */
+    evist_ride_boot_init(&b);evist_ride_boot_started(&b);
+    evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_OK,EVIST_TXN_OK,10u);
+    assert(!evist_ride_boot_due(&b,true,100000u));
+    /* A read that worked but could not be followed by a write is final. */
+    evist_ride_boot_init(&b);evist_ride_boot_started(&b);
+    evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_FAILED,EVIST_TXN_OK,10u);
+    assert(!evist_ride_boot_due(&b,true,100000u));
+    /* A rider or menu change replaces the pending check, and an apply that
+     * was not a start-up round never schedules one. */
+    evist_ride_boot_init(&b);evist_ride_boot_cancel(&b);
+    assert(!evist_ride_boot_due(&b,true,0u));
+    evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_FAILED,EVIST_TXN_NO_ACK,10u);
+    assert(!evist_ride_boot_due(&b,true,100000u));
+    /* Millisecond counter wrap does not stall the retry. */
+    evist_ride_boot_init(&b);evist_ride_boot_started(&b);
+    evist_ride_boot_finished(&b,EVIST_RIDE_APPLY_FAILED,EVIST_TXN_NO_READBACK,0xFFFFF000u);
+    assert(!evist_ride_boot_due(&b,true,0xFFFFF001u));
+    assert(evist_ride_boot_due(&b,true,0xFFFFF000u+EVIST_RIDE_BOOT_RETRY_MS));
+}
+
 int main(void) {
     assist_modes_ui_tests();
+    test_ride_boot_retry();
     test_temperature_warning();
     test_temperature_unavailable_bytes();
     test_temperature_live_diagnostics();
