@@ -608,7 +608,6 @@ int main(void){
                 if(app.screen==DPC245_APP_SCREEN_ADVANCED)
                     evist_advanced_set_status(&app.advanced,"SAVING DISABLED IN THIS BUILD");
 #endif
-                evist_ride_boot_cancel(&ride_boot);
             }
             uint16_t ride_target;
             if(ride_apply.phase==EVIST_RIDE_APPLY_IDLE &&
@@ -618,9 +617,14 @@ int main(void){
                 evist_ride_boot_cancel(&ride_boot);
             }else if(ride_apply.phase==EVIST_RIDE_APPLY_IDLE &&
                      evist_ride_boot_due(&ride_boot,ride_controller_seen,now)){
+                /* A menu edit that changes no target leaves the check running;
+                 * one that does requests an apply above, which replaces it. */
                 evist_ride_apply_begin(&ride_apply,app.ride_session==DPC245_RIDE_SESSION_OFFROAD?
-                    app.ride_cfg.offroad_x100:app.ride_cfg.legal_x100);
-                app.ride_apply_result=EVIST_RIDE_APPLY_READ;
+                    app.ride_cfg.offroad_x100:app.ride_session==DPC245_RIDE_SESSION_LEGAL?
+                    app.ride_cfg.legal_x100:evist_ride_target_x100(&app.ride_cfg));
+                /* A repeated round keeps RIDE APPLY FAILED on screen until it succeeds. */
+                if(ride_boot.retries_left==EVIST_RIDE_BOOT_RETRIES)
+                    app.ride_apply_result=EVIST_RIDE_APPLY_READ;
                 evist_ride_boot_started(&ride_boot);
             }
         }

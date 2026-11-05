@@ -99,8 +99,9 @@ void evist_ride_apply_on_result(evist_ride_apply_t *a, evist_txn_result_t result
  * The first round starts as soon as the controller is heard. A controller
  * that is not ready yet (no reply, NACK, mismatch) gets the round repeated
  * every EVIST_RIDE_BOOT_RETRY_MS, at most EVIST_RIDE_BOOT_RETRIES times per
- * power cycle; until then the dashboard shows RIDE APPLY FAILED. A mode
- * change by the rider or the menu replaces the start-up check. */
+ * power cycle; RIDE APPLY FAILED stays on the dashboard until a round
+ * succeeds. An apply requested by the rider or the menu replaces the
+ * start-up check. */
 #define EVIST_RIDE_BOOT_RETRY_MS 3000u
 #define EVIST_RIDE_BOOT_RETRIES  5u
 typedef struct {
