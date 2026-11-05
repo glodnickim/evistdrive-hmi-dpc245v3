@@ -2,7 +2,7 @@
 
 This file is generated from the current source tree and is part of the release gate. Every C function definition, including static helpers, interrupt handlers and freestanding runtime functions, is listed here.
 
-- Function definitions: **735**
+- Function definitions: **740**
 - Source files: **53**
 
 ## `platform/dpc245/bxcan_raw.c`
@@ -1176,7 +1176,7 @@ Functions: **17**
 
 - Location: `platform/dpc245/runtime.c:0`
 - Linkage: `global`
-- Type: `void *(void *, const void *, unsigned long)`
+- Type: `void *(void *, const void *, __size_t)`
 - Responsibility: Public function of the runtime module.
 - Direct callers: `__aeabi_memcpy`, `__aeabi_memcpy4`, `__aeabi_memcpy8`
 - Direct callees: —
@@ -1185,7 +1185,7 @@ Functions: **17**
 
 - Location: `platform/dpc245/runtime.c:0`
 - Linkage: `global`
-- Type: `void *(void *, const void *, unsigned long)`
+- Type: `void *(void *, const void *, __size_t)`
 - Responsibility: Public function of the runtime module.
 - Direct callers: `__aeabi_memmove`, `__aeabi_memmove4`, `__aeabi_memmove8`
 - Direct callees: —
@@ -1194,7 +1194,7 @@ Functions: **17**
 
 - Location: `platform/dpc245/runtime.c:0`
 - Linkage: `global`
-- Type: `void *(void *, int, unsigned long)`
+- Type: `void *(void *, int, __size_t)`
 - Responsibility: Public function of the runtime module.
 - Direct callers: `__aeabi_memclr`, `__aeabi_memclr4`, `__aeabi_memclr8`, `bafang_build_besst_controller_config_write`, `bafang_build_hmi_heartbeat_v3`, `bafang_build_read_query`, `bafang_build_service_ack`, `bafang_service_rx_feed`, `bafang_service_rx_init`, `dpc245_hmi_control_build_read_reply`, `dpc245_hmi_control_process`, `dpc245_hmi_identity_records_init`, `dpc245_hmi_service_build_read_reply`, `dpc245_hmi_service_tx_init`, `dpc245_hmi_service_tx_start`, `evist_can_router_init`, `make_ack`
 - Direct callees: —
@@ -5400,7 +5400,7 @@ Functions: **15**
 - Type: `int (void)`
 - Responsibility: Runs platform initialization and the cooperative application loop.
 - Direct callers: `Reset_Handler`
-- Direct callees: `bafang_can_id_decode`, `bafang_power_w`, `clock_failure_safe_mode`, `controller_config_service`, `delay_ms`, `dpc245_adc_init`, `dpc245_adc_sample32`, `dpc245_adc_window_filter_init`, `dpc245_adc_window_filter_tick`, `dpc245_al_sensitivity`, `dpc245_app_apply_preferences`, `dpc245_app_down_state`, `dpc245_app_event`, `dpc245_app_init`, `dpc245_app_set_ride`, `dpc245_app_take_light_toggle`, `dpc245_app_take_preferences_dirty`, `dpc245_app_take_ride_apply`, `dpc245_app_take_ride_cfg_dirty`, `dpc245_app_take_settings_dirty`, `dpc245_app_temperature_sample`, `dpc245_app_theme_store_result`, `dpc245_app_tick`, `dpc245_backlight_init`, `dpc245_backlight_off`, `dpc245_backlight_set_level`, `dpc245_ble_app_apply_advanced_cache`, `dpc245_ble_app_build_periodic`, `dpc245_ble_app_handle`, `dpc245_ble_app_init`, `dpc245_ble_app_take_hmi_event_bits`, `dpc245_ble_parser_feed`, `dpc245_ble_parser_init`, `dpc245_ble_uart_poll`, `dpc245_ble_uart_read_byte`, `dpc245_ble_uart_send_device_name_command`, `dpc245_ble_uart_write`, `dpc245_brightness_level`, `dpc245_build_periodic_frame`, `dpc245_build_service_query`, `dpc245_button_signal_filter`, `dpc245_buttons_init`, `dpc245_buttons_key_event`, `dpc245_buttons_state`, `dpc245_buttons_take_released`, `dpc245_can_receive_poll`, `dpc245_can_transmit`, `dpc245_can_tx_idle`, `dpc245_enter_resident_bootloader`, `dpc245_hmi_control_build_read_reply`, `dpc245_hmi_control_process`, `dpc245_hmi_identity_records_init`, `dpc245_hmi_identity_records_load`, `dpc245_hmi_service_build_read_reply`, `dpc245_hmi_service_tx_init`, `dpc245_hmi_service_tx_next`, `dpc245_hmi_service_tx_on_ack`, `dpc245_hmi_service_tx_start`, `dpc245_hwinfo_read`, `dpc245_is_can_update_request`, `dpc245_key_time_for_pass`, `dpc245_preflight_begin`, `dpc245_rtc_board_io`, `dpc245_runtime_on_can`, `dpc245_runtime_tick_500ms`, `dpc245_service_query_count`, `dpc245_spi_mem_end_step`, `dpc245_spi_mem_init`, `dpc245_spi_mem_persist_io`, `dpc245_spi_mem_set_limits`, `dpc245_system_reset`, `dpc245_theme`, `dpc245_update_can_sent`, `dpc245_update_init`, `dpc245_update_next_can`, `dpc245_v3_tx_schedule_poll`, `evist_advanced_set_status`, `evist_advanced_take_light_runtime`, `evist_advanced_take_ride`, `evist_can_router_init`, `evist_can_router_rx`, `evist_ctrl_txn_init`, `evist_ctrl_txn_on_frame`, `evist_ctrl_txn_on_service`, `evist_light_backlight_position`, `evist_light_configure`, `evist_light_update_als`, `evist_light_user_toggle`, `evist_native_result_text`, `evist_native_store_begin`, `evist_native_store_init`, `evist_native_store_step`, `evist_ride_apply_begin`, `evist_ride_apply_init`, `micros`, `millis`, `screen_push`, `send_normal`, `send_service_ack`, `stage_end`, `start_clock`, `tick_init`, `ui_boot_splash_draw`, `ui_strip_invalidate`, `ui_strip_render_active`, `ui_strip_render_cancel`, `ui_strip_render_step`
+- Direct callees: `bafang_can_id_decode`, `bafang_power_w`, `clock_failure_safe_mode`, `controller_config_service`, `delay_ms`, `dpc245_adc_init`, `dpc245_adc_sample32`, `dpc245_adc_window_filter_init`, `dpc245_adc_window_filter_tick`, `dpc245_al_sensitivity`, `dpc245_app_apply_preferences`, `dpc245_app_down_state`, `dpc245_app_event`, `dpc245_app_init`, `dpc245_app_set_ride`, `dpc245_app_take_light_toggle`, `dpc245_app_take_preferences_dirty`, `dpc245_app_take_ride_apply`, `dpc245_app_take_ride_cfg_dirty`, `dpc245_app_take_settings_dirty`, `dpc245_app_temperature_sample`, `dpc245_app_theme_store_result`, `dpc245_app_tick`, `dpc245_backlight_init`, `dpc245_backlight_off`, `dpc245_backlight_set_level`, `dpc245_ble_app_apply_advanced_cache`, `dpc245_ble_app_build_periodic`, `dpc245_ble_app_handle`, `dpc245_ble_app_init`, `dpc245_ble_app_take_hmi_event_bits`, `dpc245_ble_parser_feed`, `dpc245_ble_parser_init`, `dpc245_ble_uart_poll`, `dpc245_ble_uart_read_byte`, `dpc245_ble_uart_send_device_name_command`, `dpc245_ble_uart_write`, `dpc245_brightness_level`, `dpc245_build_periodic_frame`, `dpc245_build_service_query`, `dpc245_button_signal_filter`, `dpc245_buttons_init`, `dpc245_buttons_key_event`, `dpc245_buttons_state`, `dpc245_buttons_take_released`, `dpc245_can_receive_poll`, `dpc245_can_transmit`, `dpc245_can_tx_idle`, `dpc245_enter_resident_bootloader`, `dpc245_hmi_control_build_read_reply`, `dpc245_hmi_control_process`, `dpc245_hmi_identity_records_init`, `dpc245_hmi_identity_records_load`, `dpc245_hmi_service_build_read_reply`, `dpc245_hmi_service_tx_init`, `dpc245_hmi_service_tx_next`, `dpc245_hmi_service_tx_on_ack`, `dpc245_hmi_service_tx_start`, `dpc245_hwinfo_read`, `dpc245_is_can_update_request`, `dpc245_key_time_for_pass`, `dpc245_preflight_begin`, `dpc245_rtc_board_io`, `dpc245_runtime_on_can`, `dpc245_runtime_tick_500ms`, `dpc245_service_query_count`, `dpc245_spi_mem_end_step`, `dpc245_spi_mem_init`, `dpc245_spi_mem_persist_io`, `dpc245_spi_mem_set_limits`, `dpc245_system_reset`, `dpc245_theme`, `dpc245_update_can_sent`, `dpc245_update_init`, `dpc245_update_next_can`, `dpc245_v3_tx_schedule_poll`, `evist_advanced_set_status`, `evist_advanced_take_light_runtime`, `evist_advanced_take_ride`, `evist_can_router_init`, `evist_can_router_rx`, `evist_ctrl_txn_init`, `evist_ctrl_txn_on_frame`, `evist_ctrl_txn_on_service`, `evist_light_backlight_position`, `evist_light_configure`, `evist_light_update_als`, `evist_light_user_toggle`, `evist_native_result_text`, `evist_native_store_begin`, `evist_native_store_init`, `evist_native_store_step`, `evist_ride_apply_begin`, `evist_ride_apply_init`, `evist_ride_boot_cancel`, `evist_ride_boot_due`, `evist_ride_boot_finished`, `evist_ride_boot_init`, `evist_ride_boot_started`, `evist_ride_target_x100`, `micros`, `millis`, `screen_push`, `send_normal`, `send_service_ack`, `stage_end`, `start_clock`, `tick_init`, `ui_boot_splash_draw`, `ui_strip_invalidate`, `ui_strip_render_active`, `ui_strip_render_cancel`, `ui_strip_render_step`
 
 ## `src/native_store.c`
 
@@ -5583,7 +5583,7 @@ Functions: **19**
 
 Module implementation.
 
-Functions: **25**
+Functions: **30**
 
 ### `evist_ride_target_x100`
 
@@ -5591,7 +5591,7 @@ Functions: **25**
 - Linkage: `global`
 - Type: `uint16_t (const evist_ride_cfg_t *)`
 - Responsibility: Public function of the ride_mode module.
-- Direct callers: `dpc245_app_take_ride_apply`
+- Direct callers: `dpc245_app_take_ride_apply`, `main`
 - Direct callees: —
 
 ### `evist_ride_defaults`
@@ -5808,6 +5808,51 @@ Functions: **25**
 - Type: `void (evist_ride_apply_t *, evist_txn_result_t, const uint8_t *)`
 - Responsibility: Apply operation in the ride_mode module.
 - Direct callers: `controller_config_service`
+- Direct callees: —
+
+### `evist_ride_boot_init`
+
+- Location: `src/ride_mode.c:329`
+- Linkage: `global`
+- Type: `void (evist_ride_boot_t *)`
+- Responsibility: Initialization in the ride_mode module.
+- Direct callers: `main`
+- Direct callees: —
+
+### `evist_ride_boot_due`
+
+- Location: `src/ride_mode.c:334`
+- Linkage: `global`
+- Type: `bool (const evist_ride_boot_t *, bool, uint32_t)`
+- Responsibility: Public function of the ride_mode module.
+- Direct callers: `main`
+- Direct callees: —
+
+### `evist_ride_boot_started`
+
+- Location: `src/ride_mode.c:338`
+- Linkage: `global`
+- Type: `void (evist_ride_boot_t *)`
+- Responsibility: Start operation in the ride_mode module.
+- Direct callers: `main`
+- Direct callees: —
+
+### `evist_ride_boot_cancel`
+
+- Location: `src/ride_mode.c:343`
+- Linkage: `global`
+- Type: `void (evist_ride_boot_t *)`
+- Responsibility: Public function of the ride_mode module.
+- Direct callers: `main`
+- Direct callees: —
+
+### `evist_ride_boot_finished`
+
+- Location: `src/ride_mode.c:348`
+- Linkage: `global`
+- Type: `void (evist_ride_boot_t *, evist_ride_apply_phase_t, evist_txn_result_t, uint32_t)`
+- Responsibility: Public function of the ride_mode module.
+- Direct callers: `main`
 - Direct callees: —
 
 ## `src/ui_dashboard.c`
