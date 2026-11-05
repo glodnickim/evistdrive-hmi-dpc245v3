@@ -54,11 +54,61 @@ BOARD_MACROS = ['EVIST_BOARD_ID_HW', 'EVIST_BOARD_ID_SW', 'EVIST_BOARD_ID_MODEL'
                 'EVIST_BOARD_RADIO_NAME_CMD', 'EVIST_BOARD_BLE_BAUD', 'EVIST_BOARD_BLE_BRR_PLL',
                 'EVIST_BOARD_BLE_BRR_HSI', 'EVIST_BOARD_SPI_JEDEC_0', 'EVIST_BOARD_SPI_JEDEC_1',
                 'EVIST_BOARD_SPI_JEDEC_2']
-BOARD_VALUE = re.compile(r'"DP C24|"DPC24[0-9]CF|AT\+NAME|ble_uart_init_brr\(0x')
-BOARD_CONDITION = re.compile(r'^\s*#\s*(?:if|ifdef|ifndef|elif)\b.*\b(?:EVIST_BOARD_|EVIST_TARGET)')
+# Pattern checks, not a proof: identity strings, the radio name command, a
+# literal UART divider, and conditions on target symbols. Target symbols are
+# EVIST_BOARD_*, EVIST_TARGET*, BOARD_*, TARGET_* and display names such as DPC245_V3.
+BOARD_VALUE = re.compile(r'"DP C\d{3}\b|"DPC\d{3}CF|"AT\+|ble_uart_init_brr\s*\(\s*[0-9]')
+BOARD_CONDITION = re.compile(r'^\s*#\s*(?:if|ifdef|ifndef|elif)\b.*'
+                             r'\b(?:EVIST_BOARD_\w*|EVIST_TARGET\w*|BOARD_\w+|TARGET_\w+|DPC\d+_V\d+)\b')
 SHARED_DIRS = ('src', 'include', 'platform')
 
+
+def board_findings(text):
+    """Return (line, kind) findings in C text, ignoring comments."""
+    def blank(match):
+        return re.sub(r'[^\n]', ' ', match.group(0))
+    code = re.sub(r'/\*.*?\*/|//[^\n]*', blank, text, flags=re.S)
+    found = []
+    for number, line in enumerate(code.splitlines(), 1):
+        if BOARD_VALUE.search(line):
+            found.append((number, 'value'))
+    # Join continued directives; a joined line keeps its first line number.
+    lines = code.splitlines()
+    index = 0
+    while index < len(lines):
+        start = index
+        joined = lines[index]
+        while joined.rstrip().endswith('\\') and index + 1 < len(lines):
+            index += 1
+            joined = joined.rstrip()[:-1] + ' ' + lines[index]
+        if BOARD_CONDITION.search(joined):
+            found.append((start + 1, 'condition'))
+        index += 1
+    return found
+
+
+BOARD_RULE_CASES = [
+    ('static const char a[] = "DP C245.C 2.0";', ['value']),
+    ('static const char a[] = "DPC244CF80271.3";', ['value']),
+    ('static const char a[] = "DP C310.CAN";', ['value']),
+    ('const char c[] = "AT+NAMEX\\r\\n";', ['value']),
+    ('ble_uart_init_brr( 0x209u);', ['value']),
+    ('ble_uart_init_brr(35u);', ['value']),
+    ('#if defined(DPC245_V3)', ['condition']),
+    ('#ifdef EVIST_TARGET_V2', ['condition']),
+    ('#if BOARD_HAS_RTC', ['condition']),
+    ('#if 1 && \\\n    TARGET_V2', ['condition']),
+    ('/* "AT+NAME" and "DP C245.C 3.0" */', []),
+    ('#if 1 /* EVIST_BOARD_X */', []),
+    ('ble_uart_init_brr(EVIST_BOARD_BLE_BRR_PLL);', []),
+    ('m_text(84u,128u,"DPC245",DIM,BLACK,1u);', []),
+    ('#ifndef DPC245_V3_PROFILE_H', []),
+]
+
 errors = []
+for sample, expected in BOARD_RULE_CASES:
+    if [kind for _, kind in board_findings(sample)] != expected:
+        errors.append(f'board rule self-test failed: {sample!r}')
 for name in REQUIRED:
     if not (ROOT / name).is_file():
         errors.append(f'missing {name}')
@@ -140,11 +190,8 @@ for folder in SHARED_DIRS:
         if path.suffix not in ('.c', '.h'):
             continue
         rel = path.relative_to(ROOT).as_posix()
-        for number, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
-            if BOARD_VALUE.search(line):
-                errors.append(f'{rel}:{number}: per-display value outside boards/')
-            if BOARD_CONDITION.search(line):
-                errors.append(f'{rel}:{number}: per-display condition in shared code')
+        for number, kind in board_findings(path.read_text(encoding='utf-8')):
+            errors.append(f'{rel}:{number}: per-display {kind} in shared code')
 
 if errors:
     print('repository-check: FAIL')

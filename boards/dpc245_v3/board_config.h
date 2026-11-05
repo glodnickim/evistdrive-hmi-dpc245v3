@@ -2,8 +2,8 @@
 #ifndef EVIST_BOARD_CONFIG_H
 #define EVIST_BOARD_CONFIG_H
 
-/* DPC245 V3 target. Everything that differs between supported displays lives
- * in boards/<target>/; src/ and platform/dpc245/ are shared by all targets. */
+/* DPC245 V3 target: the values configured per display. src/ and
+ * platform/dpc245/ are shared by all targets. */
 
 /* Identity strings answered for interoperability (protocol values only). */
 #define EVIST_BOARD_ID_HW    "DP C245.C 3.0"
