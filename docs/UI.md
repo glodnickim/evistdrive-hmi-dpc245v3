@@ -37,7 +37,7 @@ DISPLAY SETTING controls unit, service tips, auto-off, trip reset, coarse bright
 
 - WHEEL: speed limit, wheel size, circumference, APPLY/read-back.
 - ASSIST: selected level, SPEED %, POWER %, APPLY/read-back.
-- ACCEL: opening the page queries the controller (`0xF203`). PER LEVEL edits one acceleration value 1..8 for each visible assist level; GLOBAL edits one value 1..8 for all levels. SAVE writes the full block and verifies it by read-back; it is available only in builds with configuration writes enabled (the default).
+- ACCEL: opening the page queries the controller (`0xF203`). PER LEVEL edits one acceleration value 1..8 and one assist ratio 0..1000 % (steps of 5) for each visible assist level; GLOBAL edits one value 1..8 for all levels. SAVE writes the full block and verifies it by read-back; it is available only in builds with configuration writes enabled (the default).
 - POWER GRAPH: 250..3000 W, 25 W step, default 600 W.
 - FIRMWARE: controller profile selector.
 - BATTERY: icon/SOC/voltage visibility.

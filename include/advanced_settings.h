@@ -53,6 +53,13 @@ enum { EVIST_WHEEL_ROW_SPEED = 0, EVIST_WHEEL_ROW_CIRC, EVIST_WHEEL_ROW_DIAMETER
 #define EVIST_WHEEL_CIRC_STEP     10u
 #define EVIST_WHEEL_DIAMETERS      7u  /* index 0 = keep the code read from the controller */
 
+/* Assist ratio per level: P0 bytes 10..27, nine u16 LE values in percent.
+ * Bytes 28..29 carry the controller's upper limit. */
+#define EVIST_RATIO_OFF          10u
+#define EVIST_RATIO_LIMIT_OFF    28u
+#define EVIST_RATIO_MAX        1000u
+#define EVIST_RATIO_STEP          5u
+
 typedef struct {
     evist_adv_screen_t screen;
     uint8_t cursor;
@@ -130,4 +137,11 @@ const char *evist_advanced_wheel_diameter_label(const evist_advanced_t *a);
 uint8_t evist_advanced_assist_cells(const evist_advanced_t *a);
 uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell);
 uint8_t evist_advanced_assist_cell_value(const evist_advanced_t *a, uint8_t cell);
+/* ACCEL rows: one per visible level, then one ratio row per visible level when
+ * the controller is in per-level mode and every visible ratio is in range. */
+bool evist_advanced_ratio_available(const evist_advanced_t *a);
+uint16_t evist_advanced_ratio_value(const evist_advanced_t *a, uint8_t level);
+/* Call after the ACCEL block becomes valid: the ratio rows shift SAVE and BACK,
+ * so a cursor already on those rows returns to the first row. */
+void evist_advanced_accel_loaded(evist_advanced_t *a);
 #endif

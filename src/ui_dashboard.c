@@ -1280,9 +1280,17 @@ static void draw_advanced(const dpc245_app_t *c,const evist_can_router_t *r,uint
         uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;
         if(rows>5u&&top+5u>rows)top=(uint8_t)(rows-5u);
         for(uint8_t row=0u;row<5u&&top+row<rows;++row){
-            uint8_t idx=(uint8_t)(top+row);char name[8]={0},val[8]={0};const char *label=name,*value=val;
+            uint8_t idx=(uint8_t)(top+row);char name[12]={0},val[8]={0};const char *label=name,*value=val;
+            uint8_t levels=evist_assist_visible_levels(a->assist_level_count);
             if(idx==values){label="SAVE";value="";}
             else if(idx==values+1u){label="BACK";value="";}
+            else if(a->accel_mode==EVIST_ACCEL_PER_LEVEL&&idx>=levels){
+                static const char suffix[]=" RATIO%";
+                uint8_t level=(uint8_t)(idx-levels+1u);
+                name[0]='L';name[1]=(char)('0'+level);
+                for(uint8_t k=0u;suffix[k];++k)name[2u+k]=suffix[k];
+                adv_u16(val,evist_advanced_ratio_value(a,level));
+            }
             else if(a->accel_mode==EVIST_ACCEL_PER_LEVEL){
                 name[0]='L';name[1]=(char)('1'+idx);
                 if(a->accel_valid)adv_u16(val,a->accel_values[evist_assist_level_slot(a->assist_level_count,(uint8_t)(idx+1u))]);

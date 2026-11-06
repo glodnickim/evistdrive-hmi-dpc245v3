@@ -97,7 +97,7 @@ typedef struct {
     uint8_t error_payload[4];
     uint8_t error_len;
     uint32_t final_frame_ms;
-    uint8_t p0_read_flag;       /* P0[63] is canonical read flag, write uses sum8 */
+    uint8_t p0_read_flag;       /* P0[63] is a flag: written and compared as read */
     uint32_t due_ms;
     uint8_t expected[64];
     uint8_t readback[64];

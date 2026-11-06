@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.29**, wersja robocza do testu na urządzeniu.
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.30**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -305,7 +305,11 @@ Po otwarciu HMI próbuje rozpoznać sposób obsługi parametru przez kontroler:
 - `PER LEVEL` — oddzielna wartość dla każdego poziomu, np. `L1`, `L2`, ..., `L5`;
 - `GLOBAL` — jedna wartość wspólna dla wszystkich poziomów.
 
-Zakres edycji to **1–8**. Wybierz pozycję, zmień wartość, wyjdź z edycji `POWER` i użyj `SAVE`. HMI próbuje zapisać i zweryfikować pełny blok ustawień. Jeśli nie można odczytać danych lub kontroler nie obsługuje zapisu, może pojawić się komunikat błędu, a w niektórych kompilacjach opcja zapisania będzie wyłączona.
+W trybie `PER LEVEL` pod wartościami przyspieszenia są też pozycje `L1 RATIO%`…`L5 RATIO%`: siła wspomagania każdego poziomu, **0–1000%**, co 5. Wartość nie przekroczy limitu podanego przez kontroler. W trybie `GLOBAL` tych pozycji nie ma. Nie ma ich też, gdy kontroler zwróci wartość poza zakresem.
+
+**Uwaga:** duża wartość `RATIO%` oznacza dużo silniejszą reakcję na nacisk na pedały. Zmieniaj ją małymi krokami i sprawdzaj najpierw na stanowisku. Kontroler może inaczej traktować wartości na poziomach niewidocznych w menu.
+
+Zakres edycji przyspieszenia to **1–8**. Wybierz pozycję, zmień wartość, wyjdź z edycji `POWER` i użyj `SAVE`. HMI próbuje zapisać i zweryfikować pełny blok ustawień. Jeśli nie można odczytać danych lub kontroler nie obsługuje zapisu, może pojawić się komunikat błędu, a w niektórych kompilacjach opcja zapisania będzie wyłączona.
 
 **Interpretacji kierunku skali 1–8 (czy większa liczba oznacza łagodniejsze lub szybsze przyspieszenie) nie należy zgadywać.** Potwierdź ją w dokumentacji i firmware używanego kontrolera. Różne odmiany kontrolera mogą stosować inny format.
 
@@ -552,7 +556,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.29**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.30**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

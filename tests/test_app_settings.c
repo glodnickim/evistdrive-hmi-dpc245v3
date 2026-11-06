@@ -357,7 +357,7 @@ static void test_app_write(void) {
     assert(result.have_tx && result.tx[5] == 0x05u &&
            b.pending_write == 2u && b.write_candidate[9] == 7u);
     uint8_t expected_p0[64]; memcpy(expected_p0, b.p0, 64u);
-    expected_p0[9] = 7u; expected_p0[63] = evist_assist_checksum(expected_p0);
+    expected_p0[9] = 7u; /* byte 63 stays as read */
     assert(memcmp(expected_p0, b.write_candidate, 64u) == 0);
     assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_FAKE_TAXI, 1000u));
     now = 1000u;
@@ -682,8 +682,7 @@ static void test_accel_page_edit(void) {
         assert(a.request == (mode == 0u ? EVIST_ADV_REQ_WRITE_ACCEL_P0 : EVIST_ADV_REQ_WRITE_ACCEL_P2));
         uint8_t expected[64]; memcpy(expected, mode == 0u ? p0 : p2, 64u);
         if (mode == 0u) expected[2] = 3u; /* visible L1 maps to P0 slot 1 */
-        else expected[54] = 8u;
-        expected[63] = evist_assist_checksum(expected);
+        else { expected[54] = 8u; expected[63] = evist_assist_checksum(expected); }
         assert(memcmp(a.accel_block, expected, 64u) == 0);
         evist_adv_request_t req;
         assert(evist_advanced_take_request(&a, &req));
@@ -731,6 +730,98 @@ static void test_accel_page_edit(void) {
     puts("ACCEL page P0/P2 edit, timed frames and compare PASS");
 }
 
+#if EVIST_ENABLE_CONFIG_WRITES
+/* The menu and the phone both write the whole P0 block. */
+static void test_menu_phone_p0_share(void) {
+    dpc245_ble_app_t b; dpc245_ble_app_init(&b);
+    evist_ctrl_txn_t t; evist_ctrl_txn_init(&t);
+    b.controller_seen = true; b.per_level = true; b.discovery_done = true;
+    b.download_status[4] = 3u;
+    for (uint8_t i = 1u; i <= 9u; ++i) b.p0[i] = 4u;
+    b.p0[10] = 250u; b.p0[63] = 1u;
+
+    /* The phone queued acceleration 7 when the ratio was 250. */
+    memcpy(b.write_candidate, b.p0, 64u);
+    b.write_candidate[2] = 7u;
+    b.pending_write = 2u;
+    /* A verified menu save then set ratio 4 and acceleration 5 elsewhere. */
+    b.p0[10] = 4u; b.p0[3] = 5u;
+    assert(dpc245_ble_app_start_controller(&b, &t, EVIST_PROFILE_BAFANG, 1000u));
+    assert(b.write_candidate[10] == 4u && b.write_candidate[63] == 1u);
+    assert(b.write_candidate[2] == 7u && t.expected[10] == 4u && t.expected[2] == 7u);
+
+    /* An open page follows a phone write unless it holds unsaved edits. */
+    evist_preferences_t prefs; evist_preferences_defaults(&prefs);
+    evist_advanced_t a = {0};
+    uint8_t p0[64]; memcpy(p0, b.p0, 64u);
+    evist_advanced_open(&a, &prefs, 5u);
+    evist_advanced_open_page(&a, EVIST_ADV_ACCEL);
+    a.accel_mode = EVIST_ACCEL_PER_LEVEL;
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+    a.request = EVIST_ADV_REQ_NONE;
+    b.p0[2] = 6u;
+    dpc245_ble_app_apply_advanced_cache(&b, &a);
+    assert(a.accel_block[2] == 6u && a.accel_committed[2] == 6u && a.accel_values[1] == 6u);
+    a.accel_dirty = true; a.accel_block[2] = 3u;
+    b.p0[2] = 8u;
+    dpc245_ble_app_apply_advanced_cache(&b, &a);
+    assert(a.accel_block[2] == 3u && a.accel_committed[2] == 6u);
+
+    /* Rows that disappear on a refresh do not leave the cursor on a moved row. */
+    a.accel_dirty = false; a.cursor = 6u;
+    b.p0[10] = 0xDCu; b.p0[11] = 0x05u; /* 1500 on a hidden slot: rows stay */
+    dpc245_ble_app_apply_advanced_cache(&b, &a);
+    assert(a.cursor == 6u);
+    b.p0[12] = 0xDCu; b.p0[13] = 0x05u; /* 1500 on visible L1: rows go */
+    dpc245_ble_app_apply_advanced_cache(&b, &a);
+    assert(a.cursor == 0u && evist_advanced_row_count(&a) == 7u);
+
+    /* A menu mismatch readback becomes the block the next phone write starts from. */
+    uint8_t actual[64]; memcpy(actual, b.p0, 64u);
+    actual[12] = 200u; actual[13] = 0u;
+    dpc245_ble_app_capture_adv_result(&b, EVIST_TXN_WRITE_APP_P0, EVIST_TXN_MISMATCH, actual);
+    assert(memcmp(b.p0, actual, 64u) == 0);
+    puts("menu and phone P0 writes keep each other's fields PASS");
+}
+
+static void test_accel_ratio_write(void) {
+    evist_preferences_t prefs; evist_preferences_defaults(&prefs);
+    evist_advanced_t a = {0}; evist_ctrl_txn_t t;
+    uint8_t p0[64] = {0};
+    for (uint8_t i = 1u; i <= 9u; ++i) p0[i] = 4u;
+    for (uint8_t i = 0u; i < 9u; ++i) p0[10u + 2u * i] = 250u; /* 250 % */
+    p0[63] = 1u;
+    evist_advanced_open(&a, &prefs, 5u);
+    evist_advanced_open_page(&a, EVIST_ADV_ACCEL);
+    a.accel_mode = EVIST_ACCEL_PER_LEVEL;
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+    a.request = EVIST_ADV_REQ_NONE;
+    a.cursor = 5u; /* L1 RATIO% */
+    evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
+    for (uint8_t i = 0u; i < 2u; ++i) evist_advanced_key(&a, EVIST_ADV_KEY_UP); /* 260 */
+    evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
+    a.cursor = (uint8_t)(evist_advanced_row_count(&a) - 2u);
+    evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
+    assert(a.request == EVIST_ADV_REQ_WRITE_ACCEL_P0);
+
+    uint8_t expected[64]; memcpy(expected, p0, 64u);
+    uint8_t off = (uint8_t)(10u + 2u * evist_assist_level_slot(5u, 1u));
+    expected[off] = 4u; expected[off + 1u] = 1u; /* 260 little-endian */
+    assert(memcmp(a.accel_block, expected, 64u) == 0);
+
+    evist_adv_request_t req;
+    assert(evist_advanced_take_request(&a, &req));
+    evist_ctrl_txn_init(&t);
+    assert(evist_ctrl_txn_write_app_p0(&t, a.accel_block, a.accel_committed[63], 100u));
+    check_accel_write_frames(&t, 0x10u, expected, expected, p0[63], false);
+    evist_txn_kind_t kind; evist_txn_result_t result; uint8_t data[64] = {0};
+    assert(evist_ctrl_txn_take_result(&t, &kind, &result, data) && result == EVIST_TXN_OK);
+    evist_advanced_on_result(&a, kind, result, data);
+    assert(!a.accel_dirty && evist_advanced_ratio_value(&a, 1u) == 260u);
+    puts("ACCEL page ratio write frames and readback PASS");
+}
+#endif
+
 int main(void) {
     assert(evist_assist_checksum(p1_log) == p1_log[63]);
     test_download();
@@ -743,5 +834,9 @@ int main(void) {
     test_trace_ack_sequence();
 #endif
     test_accel_page_edit();
+#if EVIST_ENABLE_CONFIG_WRITES
+    test_accel_ratio_write();
+    test_menu_phone_p0_share();
+#endif
     return 0;
 }

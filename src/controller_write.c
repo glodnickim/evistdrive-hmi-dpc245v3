@@ -318,7 +318,7 @@ static void complete_read(evist_ctrl_txn_t *t, const uint8_t *data) {
         return;
     }
     if (t->kind == EVIST_TXN_WRITE_APP_P0) {
-        /* Source-3 P0 ignores the write checksum and reads byte 63 as a flag. */
+        /* P0 byte 63 is a flag: it is written back as read and compared to the read value. */
         if (!same_bytes(t->readback, t->expected, 63u) ||
             t->readback[63] != t->p0_read_flag) {
             finish(t, EVIST_TXN_MISMATCH);

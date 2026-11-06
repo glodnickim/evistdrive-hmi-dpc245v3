@@ -868,6 +868,170 @@ static void test_accel_read(void) {
     check(strcmp(adv.status, "CHECKSUM BAD") == 0, "P2 explicit checksum error");
 }
 
+static void put_ratio(uint8_t *block, uint8_t slot, uint16_t value) {
+    block[EVIST_RATIO_OFF + 2u * slot] = (uint8_t)(value & 0xFFu);
+    block[EVIST_RATIO_OFF + 2u * slot + 1u] = (uint8_t)(value >> 8);
+}
+
+static uint16_t get_ratio(const uint8_t *block, uint8_t slot) {
+    return (uint16_t)(block[EVIST_RATIO_OFF + 2u * slot] |
+                      ((uint16_t)block[EVIST_RATIO_OFF + 2u * slot + 1u] << 8));
+}
+
+static void ratio_page(evist_advanced_t *adv, const uint8_t *p0) {
+    evist_preferences_t prefs; evist_preferences_defaults(&prefs);
+    evist_advanced_open(adv, &prefs, 5u);
+    evist_advanced_open_page(adv, EVIST_ADV_ACCEL);
+    adv->accel_mode = EVIST_ACCEL_PER_LEVEL;
+    evist_advanced_on_result(adv, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+}
+
+static void test_assist_ratio(void) {
+    static const uint16_t sample[9] = {45u, 95u, 155u, 215u, 260u, 310u, 370u, 525u, 525u};
+    uint8_t p0[64] = {0};
+    for (uint8_t i = 0u; i < 9u; ++i) { p0[1u + i] = 4u; put_ratio(p0, i, sample[i]); }
+    p0[28] = 0xE8u; p0[29] = 0x03u; /* limit 1000 */
+    p0[63] = 1u;
+
+    evist_advanced_t adv = {0};
+    ratio_page(&adv, p0);
+    check(evist_advanced_ratio_available(&adv) && evist_advanced_row_count(&adv) == 12u,
+          "per-level mode adds one ratio row per level");
+    uint8_t slot1 = evist_assist_level_slot(5u, 1u), slot5 = evist_assist_level_slot(5u, 5u);
+    check(evist_advanced_ratio_value(&adv, 1u) == sample[slot1] &&
+          evist_advanced_ratio_value(&adv, 5u) == sample[slot5], "ratio row maps to the level slot");
+    check(evist_advanced_ratio_value(&adv, 0u) == 0u && evist_advanced_ratio_value(&adv, 6u) == 0u,
+          "ratio value outside the visible levels is zero");
+
+    adv.cursor = 5u; /* L1 RATIO% */
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    check(adv.edit, "ratio row enters edit");
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    check(adv.accel_dirty && get_ratio(adv.accel_block, slot1) == sample[slot1] + EVIST_RATIO_STEP,
+          "ratio steps by 5 in the edit block");
+    check(get_ratio(adv.accel_block, 0u) == sample[0] && adv.accel_block[slot1 + 1u] == 4u,
+          "ratio edit leaves other slots and acceleration alone");
+
+    adv.cursor = (uint8_t)(evist_advanced_row_count(&adv) - 2u);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+#if EVIST_ENABLE_CONFIG_WRITES
+    check(adv.request == EVIST_ADV_REQ_WRITE_ACCEL_P0, "ratio saves through the P0 write");
+    check(adv.accel_block[63] == 1u, "P0 flag goes back as read");
+#endif
+
+    /* The BACK row discards the edit. */
+    ratio_page(&adv, p0);
+    adv.cursor = 9u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_DOWN);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    adv.cursor = (uint8_t)(evist_advanced_row_count(&adv) - 1u);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    check(!adv.accel_dirty && get_ratio(adv.accel_block, slot5) == sample[slot5],
+          "BACK restores the ratio");
+
+    /* The value stops at both ends, it never wraps. */
+    uint8_t edge[64]; memcpy(edge, p0, 64u);
+    put_ratio(edge, slot1, 1000u);
+    put_ratio(edge, slot5, 0u);
+    ratio_page(&adv, edge);
+    adv.cursor = 5u; adv.edit = true;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    check(!adv.accel_dirty && get_ratio(adv.accel_block, slot1) == 1000u, "ratio stops at 1000");
+    adv.cursor = 9u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_DOWN);
+    check(!adv.accel_dirty && get_ratio(adv.accel_block, slot5) == 0u, "ratio stops at 0");
+
+    /* A value off the step still reaches both ends. */
+    memcpy(edge, p0, 64u);
+    put_ratio(edge, slot1, 998u);
+    put_ratio(edge, slot5, 3u);
+    ratio_page(&adv, edge);
+    adv.cursor = 5u; adv.edit = true;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    check(adv.accel_dirty && get_ratio(adv.accel_block, slot1) == 1000u, "998 steps up to the limit");
+    adv.cursor = 9u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_DOWN);
+    check(get_ratio(adv.accel_block, slot5) == 0u, "3 steps down to 0");
+
+    /* A lower controller limit caps the edit. */
+    memcpy(edge, p0, 64u);
+    edge[28] = 50u; edge[29] = 0u;
+    put_ratio(edge, slot1, 50u);
+    for (uint8_t level = 2u; level <= 5u; ++level) put_ratio(edge, evist_assist_level_slot(5u, level), 10u);
+    ratio_page(&adv, edge);
+    adv.cursor = 5u; adv.edit = true;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    check(!adv.accel_dirty && get_ratio(adv.accel_block, slot1) == 50u, "ratio respects the controller limit");
+    memcpy(edge, p0, 64u);
+    edge[28] = 0xF7u; edge[29] = 0x01u; /* limit 503 */
+    put_ratio(edge, slot1, 500u);
+    put_ratio(edge, slot5, 10u);
+    ratio_page(&adv, edge);
+    adv.cursor = 5u; adv.edit = true;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    check(get_ratio(adv.accel_block, slot1) == 503u, "ratio reaches a limit off the step");
+
+    /* A value that is not a percentage hides the rows and keeps acceleration usable. */
+    memcpy(edge, p0, 64u);
+    put_ratio(edge, slot5, 1500u);
+    ratio_page(&adv, edge);
+    check(adv.accel_valid && !evist_advanced_ratio_available(&adv) && evist_advanced_row_count(&adv) == 7u,
+          "out-of-range ratio hides the rows");
+
+    /* A hidden slot out of range does not matter. */
+    memcpy(edge, p0, 64u);
+    put_ratio(edge, 0u, 1500u);
+    ratio_page(&adv, edge);
+    check(evist_advanced_ratio_available(&adv), "hidden slot does not hide the rows");
+
+    /* A limit below a stored visible value hides the rows. */
+    memcpy(edge, p0, 64u);
+    edge[28] = 100u; edge[29] = 0u;
+    ratio_page(&adv, edge);
+    check(!evist_advanced_ratio_available(&adv), "stored value above the limit hides the rows");
+
+    /* Three levels use their own slots. */
+    evist_preferences_t prefs; evist_preferences_defaults(&prefs);
+    evist_advanced_open(&adv, &prefs, 3u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ACCEL);
+    adv.accel_mode = EVIST_ACCEL_PER_LEVEL;
+    evist_advanced_on_result(&adv, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+    check(evist_advanced_row_count(&adv) == 8u &&
+          evist_advanced_ratio_value(&adv, 3u) == sample[evist_assist_level_slot(3u, 3u)],
+          "three levels have three ratio rows on their slots");
+
+    /* A cursor already on SAVE or BACK does not land on a ratio row. */
+    evist_advanced_open(&adv, &prefs, 5u);
+    evist_advanced_open_page(&adv, EVIST_ADV_ACCEL);
+    adv.accel_mode = EVIST_ACCEL_PER_LEVEL;
+    adv.cursor = 6u; /* BACK before the read */
+    evist_advanced_on_result(&adv, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+    check(adv.cursor == 0u, "cursor leaves the shifted rows when ratio rows appear");
+    adv.cursor = 2u;
+    evist_advanced_accel_loaded(&adv);
+    check(adv.cursor == 2u, "cursor on an acceleration row stays");
+
+    /* A late read does not replace an edited ratio; abandoning discards it. */
+    ratio_page(&adv, p0);
+    adv.cursor = 5u;
+    evist_advanced_key(&adv, EVIST_ADV_KEY_POWER);
+    evist_advanced_key(&adv, EVIST_ADV_KEY_UP);
+    evist_advanced_on_result(&adv, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
+    check(get_ratio(adv.accel_block, slot1) == sample[slot1] + EVIST_RATIO_STEP,
+          "late read keeps the edited ratio");
+    evist_advanced_abandon(&adv);
+    check(!adv.accel_dirty && get_ratio(adv.accel_block, slot1) == sample[slot1],
+          "abandon discards the ratio edit");
+
+    /* Global mode has no ratio rows. */
+    ratio_page(&adv, p0);
+    adv.accel_mode = EVIST_ACCEL_GLOBAL;
+    check(!evist_advanced_ratio_available(&adv) && evist_advanced_row_count(&adv) == 3u,
+          "global mode has no ratio rows");
+}
+
 static void test_stale_reassembly(void) {
     evist_ctrl_txn_t t; evist_ctrl_txn_init(&t);
     evist_can_router_t r; evist_can_router_init(&r);
@@ -1373,6 +1537,7 @@ int main(void) {
     test_router_event();
     test_advanced_buffers();
     test_preferences();
+    test_assist_ratio();
     test_stale_reassembly();
     test_accel_read();
     test_deadlines();

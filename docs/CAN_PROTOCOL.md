@@ -63,12 +63,16 @@ All other bytes are preserved from the read result. Write sequence: declaration 
 
 The ADV page first queries `0xF203`. A long reply selects PER LEVEL:
 visible acceleration values are P0 (`0x6010`) bytes `1..9`, range `1..8`.
+The same page edits the assist ratio of each visible level: P0 bytes `10..27`,
+nine u16 little-endian values in percent, range `0..1000`, steps of 5. Bytes
+`28..29` hold the controller's upper limit; 0 or a value above 1000 means 1000.
+The ratio rows are hidden when a visible level reads above the limit.
 Without that reply it offers GLOBAL using P2 (`0x6012`) byte `54`, range `1..8`. The meaning of this byte across controller variants is unconfirmed; verify it on a stand before use.
 SAVE is gated by `EVIST_ENABLE_CONFIG_WRITES`. It starts from the cached full
-64-byte block, changes the selected byte, and uses the source-3 long write
+64-byte block, changes the selected bytes, and uses the source-3 long write
 with ACK after each fragment, re-read and exact comparison. P0 byte 63 is a
-read flag: the write uses the sum of bytes `0..62`, but comparison expects the
-read flag. P2 byte 63 is the checksum, sum of bytes `0..62` modulo 256.
+flag: it is written back as read and compared to the read value. P2 byte 63 is
+the checksum, sum of bytes `0..62` modulo 256.
 The write path has host coverage. Its behavior on a connected controller
 requires a stand test before use.
 

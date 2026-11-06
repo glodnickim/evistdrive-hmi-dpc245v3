@@ -1,5 +1,10 @@
 # Changelog
 
+## 10.30
+
+- BIKE → ACCEL now also sets the assist ratio of each level (`L1 RATIO%`…`L5 RATIO%`, 0–1000%, steps of 5) on motors with per-level settings. Other motors look the same as before.
+- Saving per-level acceleration or ratio no longer overwrites the motor's flag in byte 63 of the settings block.
+
 ## 10.29
 
 - After power-on the display checks the motor speed limit again if the motor was not ready to answer, so LEGAL or OFFROAD is applied even when the motor starts slowly.

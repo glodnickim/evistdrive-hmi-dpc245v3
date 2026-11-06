@@ -532,6 +532,18 @@ int main(int argc, char **argv) {
     check_layout("accel_per_level_edit"); dump("accel_per_level_edit");
     app.advanced.edit = false;
     app.advanced.accel_dirty = false;
+    {
+        static const uint16_t ratios[9] = {45u, 95u, 155u, 215u, 260u, 310u, 370u, 525u, 1000u};
+        for (uint8_t i = 0u; i < 9u; ++i) {
+            app.advanced.accel_block[10u + 2u * i] = (uint8_t)(ratios[i] & 0xFFu);
+            app.advanced.accel_block[11u + 2u * i] = (uint8_t)(ratios[i] >> 8);
+        }
+    }
+    app.advanced.cursor = 9u;
+    box_count = 0;
+    ui_dashboard_draw(&app, &router, &adc, &hw, 0u, true, true, true, 0u, &status);
+    check_layout("accel_ratio"); dump("accel_ratio");
+    app.advanced.cursor = 0u;
     app.advanced.accel_mode = EVIST_ACCEL_GLOBAL;
     app.advanced.accel_global = 7u;
     box_count = 0;

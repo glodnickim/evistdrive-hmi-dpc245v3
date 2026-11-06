@@ -205,7 +205,6 @@ static bool queue_motor_write(dpc245_ble_app_t *b, uint8_t which,
             if (v < 1u || v > 8u) return false;
             b->write_candidate[1u + i] = v;
         }
-        b->write_candidate[63] = evist_assist_checksum(b->write_candidate);
     }
     b->pending_write = which;
     return true;
@@ -232,6 +231,11 @@ bool dpc245_ble_app_start_controller(dpc245_ble_app_t *b, evist_ctrl_txn_t *txn,
     b->active_is_write = false;
     if (b->pending_write != 0u) {
 #if EVIST_ENABLE_CONFIG_WRITES
+        /* The phone changes only bytes 1..9. The rest comes from the newest
+         * block, so a menu save made while this write waited is not undone. */
+        if (b->pending_write == 2u)
+            for (uint8_t i = 0u; i < 64u; ++i)
+                if (i == 0u || i > 9u) b->write_candidate[i] = b->p0[i];
         started = b->pending_write == 1u ?
             evist_ctrl_txn_write_app_p1(txn, b->write_candidate, profile, now) :
             evist_ctrl_txn_write_app_p0(txn, b->write_candidate, b->p0[63], now);
@@ -355,6 +359,9 @@ void dpc245_ble_app_capture_adv_result(dpc245_ble_app_t *b, evist_txn_kind_t kin
               kind == EVIST_TXN_READ_ACCEL_P0 || kind == EVIST_TXN_READ_ACCEL_P2 ||
               kind == EVIST_TXN_WRITE_APP_P0 || kind == EVIST_TXN_WRITE_APP_P2))
         cache_block(b, kind, data);
+    /* A mismatch readback is still what the controller holds. */
+    else if (result == EVIST_TXN_MISMATCH && kind == EVIST_TXN_WRITE_APP_P0 && data)
+        cache_block(b, kind, data);
 }
 
 void dpc245_ble_app_apply_advanced_cache(const dpc245_ble_app_t *b, evist_advanced_t *adv) {
@@ -373,12 +380,25 @@ void dpc245_ble_app_apply_advanced_cache(const dpc245_ble_app_t *b, evist_advanc
             copy_bytes(adv->accel_committed, b->p0, 64u);
             for (uint8_t i = 0u; i < 9u; ++i) adv->accel_values[i] = b->p0[1u + i];
             adv->accel_valid = true;
+            evist_advanced_accel_loaded(adv);
         } else if (!b->per_level && b->download_status[6] == 3u) {
             copy_bytes(adv->accel_block, b->p2, 64u);
             copy_bytes(adv->accel_committed, b->p2, 64u);
             adv->accel_global = b->p2[54];
             adv->accel_valid = true;
         }
+        return;
+    }
+    /* A phone write changes the controller while the page stays open. */
+    if (adv->screen == EVIST_ADV_ACCEL && !adv->edit && !adv->accel_dirty &&
+        adv->accel_mode == EVIST_ACCEL_PER_LEVEL && adv->request == EVIST_ADV_REQ_NONE &&
+        b->per_level && b->download_status[4] == 3u) {
+        size_t rows = evist_advanced_row_count(adv);
+        copy_bytes(adv->accel_block, b->p0, 64u);
+        copy_bytes(adv->accel_committed, b->p0, 64u);
+        for (uint8_t i = 0u; i < 9u; ++i) adv->accel_values[i] = b->p0[1u + i];
+        /* Ratio rows came or went, so every row below them has moved. */
+        if (evist_advanced_row_count(adv) != rows) adv->cursor = 0u;
     }
 }
 

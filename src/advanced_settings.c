@@ -55,6 +55,18 @@ static void accel_values_from_block(evist_advanced_t *a) {
     a->accel_global = a->accel_block[54];
 }
 
+static uint16_t ratio_at(const uint8_t *block, uint8_t slot) {
+    uint8_t off = (uint8_t)(EVIST_RATIO_OFF + 2u * slot);
+    return (uint16_t)(block[off] | ((uint16_t)block[off + 1u] << 8));
+}
+
+/* A missing or larger limit falls back to the protocol maximum. */
+static uint16_t ratio_limit(const uint8_t *block) {
+    uint16_t limit = (uint16_t)(block[EVIST_RATIO_LIMIT_OFF] |
+                                ((uint16_t)block[EVIST_RATIO_LIMIT_OFF + 1u] << 8));
+    return limit == 0u || limit > EVIST_RATIO_MAX ? EVIST_RATIO_MAX : limit;
+}
+
 static void enter(evist_advanced_t *a, evist_adv_screen_t s) {
     a->screen = s;
     /* Returning to the menu restores the row the user left; other pages start at 0. */
@@ -205,14 +217,36 @@ uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell
     return 0u;
 }
 
+bool evist_advanced_ratio_available(const evist_advanced_t *a) {
+    if (!a || a->accel_mode != EVIST_ACCEL_PER_LEVEL || !a->accel_valid) return false;
+    uint16_t limit = ratio_limit(a->accel_block);
+    for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level)
+        if (ratio_at(a->accel_block, evist_assist_level_slot(a->assist_level_count, level)) > limit)
+            return false;
+    return true;
+}
+
+uint16_t evist_advanced_ratio_value(const evist_advanced_t *a, uint8_t level) {
+    if (!a || level == 0u || level > evist_assist_visible_levels(a->assist_level_count)) return 0u;
+    return ratio_at(a->accel_block, evist_assist_level_slot(a->assist_level_count, level));
+}
+
+void evist_advanced_accel_loaded(evist_advanced_t *a) {
+    if (a && evist_advanced_ratio_available(a) &&
+        a->cursor >= evist_assist_visible_levels(a->assist_level_count)) a->cursor = 0u;
+}
+
 size_t evist_advanced_row_count(const evist_advanced_t *a) {
     if (!a) return 0u;
     switch (a->screen) {
     case EVIST_ADV_MENU:       return MENU_ITEMS;
     case EVIST_ADV_WHEEL:      return EVIST_WHEEL_ROWS;
     case EVIST_ADV_ASSIST:     return (size_t)evist_advanced_assist_cells(a) + 2u;
-    case EVIST_ADV_ACCEL:      return (a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
-                                        evist_assist_visible_levels(a->assist_level_count) : 1u) + 2u;
+    case EVIST_ADV_ACCEL: {
+        size_t levels = a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
+                        evist_assist_visible_levels(a->assist_level_count) : 1u;
+        return (evist_advanced_ratio_available(a) ? levels * 2u : levels) + 2u;
+    }
     case EVIST_ADV_GRAPH:      return 3u;
     case EVIST_ADV_FIRMWARE:   return 3u;
     case EVIST_ADV_BATTERY:    return 6u;
@@ -403,7 +437,9 @@ static void accel_save(evist_advanced_t *a) {
     if (!a->accel_dirty) { a->status = "NO CHANGES"; return; }
     if (a->accel_mode == EVIST_ACCEL_GLOBAL) a->accel_block[54] = a->accel_global;
     else for (uint8_t i = 0u; i < 9u; ++i) a->accel_block[i + 1u] = a->accel_values[i];
-    a->accel_block[63] = evist_assist_checksum(a->accel_block);
+    /* P2 byte 63 is a checksum; P0 byte 63 is a flag and goes back as it was read. */
+    a->accel_block[63] = a->accel_mode == EVIST_ACCEL_GLOBAL ?
+                         evist_assist_checksum(a->accel_block) : a->accel_committed[63];
     request(a, a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
             EVIST_ADV_REQ_WRITE_ACCEL_P0 : EVIST_ADV_REQ_WRITE_ACCEL_P2,
             a->busy ? "WAITING TO WRITE" : "WRITING");
@@ -418,6 +454,21 @@ static void accel_key(evist_advanced_t *a, evist_adv_key_t k) {
     uint8_t save = (uint8_t)(rows - 2u), back = (uint8_t)(rows - 1u);
     if (a->edit) {
         if (k == EVIST_ADV_KEY_POWER) { a->edit = false; return; }
+        uint8_t levels = evist_assist_visible_levels(a->assist_level_count);
+        if (a->accel_mode == EVIST_ACCEL_PER_LEVEL && a->cursor >= levels) {
+            uint8_t slot = evist_assist_level_slot(a->assist_level_count, (uint8_t)(a->cursor - levels + 1u));
+            uint16_t old = ratio_at(a->accel_block, slot), limit = ratio_limit(a->accel_block), ratio;
+            /* A value that is not a multiple of the step still reaches both ends. */
+            if (k == EVIST_ADV_KEY_UP)
+                ratio = limit - old < EVIST_RATIO_STEP ? limit : (uint16_t)(old + EVIST_RATIO_STEP);
+            else ratio = old < EVIST_RATIO_STEP ? 0u : (uint16_t)(old - EVIST_RATIO_STEP);
+            if (ratio != old) {
+                a->accel_block[EVIST_RATIO_OFF + 2u * slot] = (uint8_t)(ratio & 0xFFu);
+                a->accel_block[EVIST_RATIO_OFF + 2u * slot + 1u] = (uint8_t)(ratio >> 8);
+                a->accel_dirty = true;
+            }
+            return;
+        }
         uint8_t *v = a->accel_mode == EVIST_ACCEL_GLOBAL ? &a->accel_global :
             &a->accel_values[evist_assist_level_slot(a->assist_level_count, (uint8_t)(a->cursor + 1u))];
         uint8_t old = *v;
@@ -675,6 +726,7 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
         }
         copy64(a->accel_committed, data);
         a->accel_valid = true;
+        evist_advanced_accel_loaded(a);
         a->status = "";
         return;
     case EVIST_TXN_WRITE_APP_P0:
