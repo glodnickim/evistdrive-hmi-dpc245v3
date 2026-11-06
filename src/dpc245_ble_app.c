@@ -372,7 +372,9 @@ void dpc245_ble_app_apply_advanced_cache(const dpc245_ble_app_t *b, evist_advanc
         copy_bytes(adv->assist_committed, b->p1, 64u);
         adv->assist_valid = true;
     }
-    if (adv->screen == EVIST_ADV_ACCEL && !adv->edit && !adv->accel_dirty && !adv->accel_valid) {
+    bool p0_page = adv->screen == EVIST_ADV_ACCEL || adv->screen == EVIST_ADV_ASSIST;
+    if (p0_page && !adv->edit && !adv->accel_dirty && !adv->accel_valid &&
+        (adv->screen == EVIST_ADV_ACCEL || (!adv->assist_dirty && adv->request == EVIST_ADV_REQ_NONE))) {
         if (!b->discovery_done) return;
         adv->accel_mode = b->per_level ? EVIST_ACCEL_PER_LEVEL : EVIST_ACCEL_GLOBAL;
         if (b->per_level && b->download_status[4] == 3u) {
@@ -389,8 +391,19 @@ void dpc245_ble_app_apply_advanced_cache(const dpc245_ble_app_t *b, evist_advanc
         }
         return;
     }
+    /* The phone changes bytes 1..9 only and a ratio edit never touches them, so they
+     * follow the phone and SAVE on the ASSIST page cannot put back an old value. */
+    if (adv->screen == EVIST_ADV_ASSIST && adv->accel_dirty && adv->accel_valid &&
+        adv->request == EVIST_ADV_REQ_NONE && b->per_level && b->download_status[4] == 3u) {
+        for (uint8_t i = 0u; i < 9u; ++i) {
+            adv->accel_block[1u + i] = b->p0[1u + i];
+            adv->accel_committed[1u + i] = b->p0[1u + i];
+            adv->accel_values[i] = b->p0[1u + i];
+        }
+        return;
+    }
     /* A phone write changes the controller while the page stays open. */
-    if (adv->screen == EVIST_ADV_ACCEL && !adv->edit && !adv->accel_dirty &&
+    if (p0_page && !adv->edit && !adv->accel_dirty &&
         adv->accel_mode == EVIST_ACCEL_PER_LEVEL && adv->request == EVIST_ADV_REQ_NONE &&
         b->per_level && b->download_status[4] == 3u) {
         size_t rows = evist_advanced_row_count(adv);

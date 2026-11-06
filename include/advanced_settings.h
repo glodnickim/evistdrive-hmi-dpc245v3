@@ -87,6 +87,7 @@ typedef struct {
     uint8_t assist_block[64];         /* edit buffer */
     uint8_t assist_committed[64];     /* last controller-confirmed block */
     bool assist_dirty;
+    bool ratio_write_pending;         /* P0 follows once the ASSIST write is confirmed */
 
     evist_accel_mode_t accel_mode; /* retained across ADV visits until restart */
     bool accel_valid;
@@ -137,11 +138,13 @@ const char *evist_advanced_wheel_diameter_label(const evist_advanced_t *a);
 uint8_t evist_advanced_assist_cells(const evist_advanced_t *a);
 uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell);
 uint8_t evist_advanced_assist_cell_value(const evist_advanced_t *a, uint8_t cell);
-/* ACCEL rows: one per visible level, then one ratio row per visible level when
- * the controller is in per-level mode and every visible ratio is in range. */
+/* ASSIST rows: POWER% and SPEED% per enabled mode, plus RATIO% when the controller
+ * is in per-level mode and every visible ratio is in range. */
 bool evist_advanced_ratio_available(const evist_advanced_t *a);
 uint16_t evist_advanced_ratio_value(const evist_advanced_t *a, uint8_t level);
-/* Call after the ACCEL block becomes valid: the ratio rows shift SAVE and BACK,
- * so a cursor already on those rows returns to the first row. */
+/* 0 = POWER%, 1 = SPEED%, 2 = RATIO% for an ASSIST value row. */
+uint8_t evist_advanced_assist_cell_column(const evist_advanced_t *a, uint8_t cell);
+/* Call after P0 becomes valid: the ratio rows move every row of the ASSIST page,
+ * so the cursor returns to the first row. */
 void evist_advanced_accel_loaded(evist_advanced_t *a);
 #endif

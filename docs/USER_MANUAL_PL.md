@@ -4,7 +4,7 @@
 
 **Wersja dokumentacji:** robocza 1.0, 15.10.2026
 
-**Oprogramowanie odniesienia:** EVistDrive HMI **10.30**, wersja robocza do testu na urządzeniu.
+**Oprogramowanie odniesienia:** EVistDrive HMI **10.31**, wersja robocza do testu na urządzeniu.
 
 **Język interfejsu:** angielski; w tej instrukcji zachowano dokładne nazwy opcji widoczne na ekranie.
 
@@ -284,11 +284,16 @@ Zmiany w tym dziale mogą być zapisywane **w kontrolerze napędu poprzez CAN**,
 
 ### 6.1. `ASSIST LEVELS` – poziomy wspomagania
 
-Podmenu odczytuje tabelę wspomagania kontrolera i pokazuje po dwa pola dla każdego włączonego trybu E, T, S, S+ lub B, w tej kolejności:
+Podmenu odczytuje tabelę wspomagania kontrolera i pokazuje po dwa lub trzy pola dla każdego włączonego trybu E, T, S, S+ lub B, w tej kolejności:
 
 - `E POWER%`, `T POWER%` itd. — procentowy limit prądu/mocy w tabeli kontrolera (interpretacja zależy od firmware napędu),
 - `E SPEED%`, `T SPEED%` itd. — druga kolumna w profilu `BAFANG`,
 - `E ASSIST%`, `T ASSIST%` itd. — ta sama druga kolumna w profilu `FAKE TAXI`, ale interpretowana inaczej.
+- `E RATIO%`, `T RATIO%` itd. — siła wspomagania trybu, **0–1000%**, co 5. Pole jest tylko na silnikach z ustawieniami na poziom (`PER LEVEL`). Wartość nie przekroczy limitu podanego przez kontroler.
+
+`SAVE` zapisuje najpierw `POWER%` i drugą kolumnę, a po ich potwierdzeniu `RATIO%`, bo to dwa osobne bloki kontrolera. Jeśli drugi zapis się nie uda, ekran pokaże wynik, a ponowny `SAVE` powtórzy tylko to, co nie weszło.
+
+**Uwaga:** duża wartość `RATIO%` oznacza dużo silniejszą reakcję na nacisk na pedały. Zmieniaj ją małymi krokami i sprawdzaj najpierw na stanowisku.
 
 Przy profilu pięciu poziomów E, T, S, S+ i B odpowiadają slotom 1, 3, 5, 7 i 8 tabeli kontrolera (numeracja od zera). Lista nie zależy od bieżącego poziomu jazdy, również przy ASSIST OFF. Na przykład przy włączonych E, S i B pokazuje sześć pól, a następnie `SAVE` i `BACK`. Gdy wszystkie tryby są wyłączone, pokazuje `NO MODES ON` oraz tylko `SAVE` i `BACK`. Wartości kolumn edytuje się w zakresie **0–100%**. Po zmianie wybierz `SAVE`, aby wysłać pełny blok ustawień do kontrolera i sprawdzić jego odczyt zwrotny.
 
@@ -304,10 +309,6 @@ Po otwarciu HMI próbuje rozpoznać sposób obsługi parametru przez kontroler:
 
 - `PER LEVEL` — oddzielna wartość dla każdego poziomu, np. `L1`, `L2`, ..., `L5`;
 - `GLOBAL` — jedna wartość wspólna dla wszystkich poziomów.
-
-W trybie `PER LEVEL` pod wartościami przyspieszenia są też pozycje `L1 RATIO%`…`L5 RATIO%`: siła wspomagania każdego poziomu, **0–1000%**, co 5. Wartość nie przekroczy limitu podanego przez kontroler. W trybie `GLOBAL` tych pozycji nie ma. Nie ma ich też, gdy kontroler zwróci wartość poza zakresem.
-
-**Uwaga:** duża wartość `RATIO%` oznacza dużo silniejszą reakcję na nacisk na pedały. Zmieniaj ją małymi krokami i sprawdzaj najpierw na stanowisku. Kontroler może inaczej traktować wartości na poziomach niewidocznych w menu.
 
 Zakres edycji przyspieszenia to **1–8**. Wybierz pozycję, zmień wartość, wyjdź z edycji `POWER` i użyj `SAVE`. HMI próbuje zapisać i zweryfikować pełny blok ustawień. Jeśli nie można odczytać danych lub kontroler nie obsługuje zapisu, może pojawić się komunikat błędu, a w niektórych kompilacjach opcja zapisania będzie wyłączona.
 
@@ -556,7 +557,7 @@ Dokument opracowano przede wszystkim na podstawie rzeczywistych nazw, obsługi p
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – dokumentacja techniczna,
 - `README.md` – wersja i informacje o wydaniu.
 
-**Uwaga o wersjach:** numer bieżącej wersji (**10.30**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
+**Uwaga o wersjach:** numer bieżącej wersji (**10.31**) podają `include/app_config.h`, `Makefile` i `CHANGELOG.md`; to one są źródłem prawdy.
 
 **Weryfikacja przed oznaczeniem instrukcji jako zatwierdzonej:** opiekun projektu powinien porównać tę instrukcję z aktualnym `HEAD`, poprawić rozbieżności i wygenerować/zweryfikować zrzuty z symulatora. W szczególności trzeba potwierdzić na urządzeniu fizycznym: zachowanie `AUTO OFF`, kierunek skali `ACCELERATION`, wpływ wartości `LEVEL` na jasność, szczegóły standardowego Walk oraz skuteczne zastosowanie RIDE na konkretnym kontrolerze. Nie należy przedstawiać ich jako w pełni potwierdzonych testami sprzętowymi.
 

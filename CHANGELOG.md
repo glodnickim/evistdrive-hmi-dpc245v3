@@ -1,5 +1,11 @@
 # Changelog
 
+## 10.31
+
+- The assist ratio moved from BIKE → ACCEL to BIKE → ASSIST LEVELS: each mode now has `RATIO%` as a third value next to `POWER%` and `SPEED%`.
+- One SAVE writes both controller blocks in turn; a failed write stays visible and SAVE repeats only what was not written.
+- A phone change of acceleration during an unsaved ratio edit is kept by SAVE.
+
 ## 10.30
 
 - BIKE → ACCEL now also sets the assist ratio of each level (`L1 RATIO%`…`L5 RATIO%`, 0–1000%, steps of 5) on motors with per-level settings. Other motors look the same as before.

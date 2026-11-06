@@ -768,13 +768,33 @@ static void test_menu_phone_p0_share(void) {
     assert(a.accel_block[2] == 3u && a.accel_committed[2] == 6u);
 
     /* Rows that disappear on a refresh do not leave the cursor on a moved row. */
-    a.accel_dirty = false; a.cursor = 6u;
+    a.accel_dirty = false;
+    evist_advanced_open_page(&a, EVIST_ADV_ASSIST);
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
+    a.request = EVIST_ADV_REQ_NONE;
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, b.p0);
+    assert(evist_advanced_ratio_available(&a));
+    size_t rows_with_ratio = evist_advanced_row_count(&a);
+    a.cursor = 4u;
     b.p0[10] = 0xDCu; b.p0[11] = 0x05u; /* 1500 on a hidden slot: rows stay */
     dpc245_ble_app_apply_advanced_cache(&b, &a);
-    assert(a.cursor == 6u);
+    assert(a.cursor == 4u && evist_advanced_row_count(&a) == rows_with_ratio);
     b.p0[12] = 0xDCu; b.p0[13] = 0x05u; /* 1500 on visible L1: rows go */
     dpc245_ble_app_apply_advanced_cache(&b, &a);
-    assert(a.cursor == 0u && evist_advanced_row_count(&a) == 7u);
+    assert(a.cursor == 0u && !evist_advanced_ratio_available(&a));
+
+    /* A phone write during an unsaved ratio edit survives SAVE; the edit survives too. */
+    b.p0[12] = 100u; b.p0[13] = 0u;
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, b.p0);
+    a.cursor = 2u; a.edit = true;
+    evist_advanced_key(&a, EVIST_ADV_KEY_UP);
+    a.edit = false;
+    assert(a.accel_dirty);
+    uint8_t edited = a.accel_block[12];
+    b.p0[3] = 7u;
+    dpc245_ble_app_apply_advanced_cache(&b, &a);
+    assert(a.accel_dirty && a.accel_block[3] == 7u && a.accel_values[2] == 7u && a.accel_block[12] == edited);
+    a.accel_dirty = false;
 
     /* A menu mismatch readback becomes the block the next phone write starts from. */
     uint8_t actual[64]; memcpy(actual, b.p0, 64u);
@@ -791,16 +811,19 @@ static void test_accel_ratio_write(void) {
     for (uint8_t i = 1u; i <= 9u; ++i) p0[i] = 4u;
     for (uint8_t i = 0u; i < 9u; ++i) p0[10u + 2u * i] = 250u; /* 250 % */
     p0[63] = 1u;
+    prefs.assist_mode_mask = 0x1Fu;
     evist_advanced_open(&a, &prefs, 5u);
-    evist_advanced_open_page(&a, EVIST_ADV_ACCEL);
+    evist_advanced_open_page(&a, EVIST_ADV_ASSIST);
+    evist_advanced_on_result(&a, EVIST_TXN_READ_ASSIST, EVIST_TXN_OK, p1_log);
+    a.request = EVIST_ADV_REQ_NONE;
     a.accel_mode = EVIST_ACCEL_PER_LEVEL;
     evist_advanced_on_result(&a, EVIST_TXN_READ_ACCEL_P0, EVIST_TXN_OK, p0);
     a.request = EVIST_ADV_REQ_NONE;
-    a.cursor = 5u; /* L1 RATIO% */
+    a.cursor = 2u; /* first mode, RATIO% */
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
     for (uint8_t i = 0u; i < 2u; ++i) evist_advanced_key(&a, EVIST_ADV_KEY_UP); /* 260 */
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
-    a.cursor = (uint8_t)(evist_advanced_row_count(&a) - 2u);
+    a.cursor = evist_advanced_assist_cells(&a);
     evist_advanced_key(&a, EVIST_ADV_KEY_POWER);
     assert(a.request == EVIST_ADV_REQ_WRITE_ACCEL_P0);
 
@@ -818,7 +841,7 @@ static void test_accel_ratio_write(void) {
     assert(evist_ctrl_txn_take_result(&t, &kind, &result, data) && result == EVIST_TXN_OK);
     evist_advanced_on_result(&a, kind, result, data);
     assert(!a.accel_dirty && evist_advanced_ratio_value(&a, 1u) == 260u);
-    puts("ACCEL page ratio write frames and readback PASS");
+    puts("ASSIST page ratio write frames and readback PASS");
 }
 #endif
 

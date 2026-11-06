@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 PROJECT := evistdrive_hmi
-VERSION := 10.30
+VERSION := 10.31
 # Display target: boards/<target>/ holds everything that differs between displays.
 TARGET ?= dpc245_v3
 BOARD_DIR := boards/$(TARGET)

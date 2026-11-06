@@ -4,7 +4,7 @@
 
 **Documentation version:** Draft 1.0, October 15, 2026
 
-**Reference firmware:** EVistDrive HMI **10.30**, development candidate awaiting device testing.
+**Reference firmware:** EVistDrive HMI **10.31**, development candidate awaiting device testing.
 
 **Interface language:** English. This manual preserves the exact option names displayed on the device.
 
@@ -296,6 +296,12 @@ In the `BAFANG` profile, the firmware enforces non-decreasing values across cons
 
 **Note:** `POWER%` does not necessarily mean a direct limit in watts. `ASSIST%` in the custom profile is not a universal torque multiplier either. The actual meaning of both columns is defined by the motor controller's firmware.
 
+In `PER LEVEL` mode every enabled mode has a third row, `E RATIO%`, `T RATIO%` and so on: the assist ratio of that mode, **0–1000%**, in steps of 5. The value cannot exceed the limit given by the controller.
+
+`SAVE` writes `POWER%` and the second column first and `RATIO%` after they are confirmed, because these are two separate controller blocks. If the second write fails the screen shows the result, and `SAVE` repeats only what was not written.
+
+**Note:** a high `RATIO%` means a much stronger response to pedal force. Change it in small steps and check it on a stand first.
+
 ![Assistance level editor](images/advanced_assist.png)
 
 ### 6.2. `ACCELERATION` – acceleration response
@@ -304,10 +310,6 @@ When the menu opens, the HMI attempts to identify the format supported by the co
 
 - `PER LEVEL` — a separate value for each assistance level, such as `L1`, `L2`, ..., `L5`.
 - `GLOBAL` — one value shared by all levels.
-
-In `PER LEVEL` mode the rows below the acceleration values are `L1 RATIO%`…`L5 RATIO%`: the assist ratio of each level, **0–1000%**, in steps of 5. The value cannot exceed the limit reported by the controller. These rows do not exist in `GLOBAL` mode, or when the controller reports a value out of range.
-
-**Note:** a high `RATIO%` means a much stronger response to pedal force. Change it in small steps and check it on a stand first. The controller may treat levels not shown in the menu differently.
 
 The acceleration range is **1–8**. Select an entry, change the value, finish editing with `POWER` and choose `SAVE`. The HMI attempts to write and verify the complete settings block. If it cannot read the configuration or the controller does not support writing it, an error may appear; in some builds saving may be disabled.
 
@@ -556,7 +558,7 @@ This manual was developed primarily from the actual UI labels, button handling a
 - `docs/UI.md`, `docs/PERSISTENCE.md`, `docs/FEATURE_COVERAGE.md` – technical project documentation;
 - `README.md` – release and version information.
 
-**Version note:** the current version (**10.30**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
+**Version note:** the current version (**10.31**) is given by `include/app_config.h`, `Makefile` and `CHANGELOG.md`; they are the source of truth.
 
 **Before marking this manual as verified:** The project maintainer should compare this manual with the current `HEAD`, resolve inconsistencies and generate/verify simulator screenshots. In particular, the following require physical hardware verification: `AUTO OFF` behavior, the direction of the `ACCELERATION` scale, how `BACKLIGHT → LEVEL` affects actual brightness, details of Standard Walk operation, and successful application of RIDE settings with a specific controller. Do not present these as hardware-verified facts until they have been tested.
 

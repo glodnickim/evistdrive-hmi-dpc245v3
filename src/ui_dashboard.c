@@ -1001,7 +1001,7 @@ static void draw_adv_wheel(const evist_advanced_t *a){
     if(a->wheel_dirty)m_text(270u,10u,"EDIT",0xFFE0u,BLACK,1u);
     adv_status_or_footer(a,a->edit?"UP/DN VALUE  POWER DONE":"POWER SELECT");
 }
-/* Enabled modes have two value rows each, then SAVE and BACK. */
+/* Enabled modes have two or three value rows each, then SAVE and BACK. */
 static void draw_adv_assist(const evist_advanced_t *a){
     uint8_t cells=evist_advanced_assist_cells(a),rows=(uint8_t)(cells+2u);
     uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;if(rows>5u&&top+5u>rows)top=(uint8_t)(rows-5u);
@@ -1010,19 +1010,21 @@ static void draw_adv_assist(const evist_advanced_t *a){
         if(idx==cells){name[0]='S';name[1]='A';name[2]='V';name[3]='E';val="";}
         else if(idx==cells+1u){name[0]='B';name[1]='A';name[2]='C';name[3]='K';val="";}
         else{
-            const char *col=(idx&1u)?(a->committed.firmware_profile==EVIST_PROFILE_FAKE_TAXI?" ASSIST%":" SPEED%"):" POWER%";
+            uint8_t column=evist_advanced_assist_cell_column(a,idx);
+            const char *col=column==2u?" RATIO%":column==1u?(a->committed.firmware_profile==EVIST_PROFILE_FAKE_TAXI?" ASSIST%":" SPEED%"):" POWER%";
             static const char *const modes[EVIST_ASSIST_MODE_COUNT]={"E","T","S","S+","B"};
             uint8_t level=evist_advanced_assist_cell_level(a,idx);
             unsigned n=0u;
             if(level>=1u&&level<=EVIST_ASSIST_MODE_COUNT)
                 for(const char *p=modes[level-1u];*p&&n<sizeof(name)-1u;++p)name[n++]=*p;
             for(unsigned k=0u;col[k]&&n<sizeof(name)-1u;k++)name[n++]=col[k];
-            if(a->assist_valid)adv_u16(v,evist_advanced_assist_cell_value(a,idx));else val="--";
+            if(column==2u)adv_u16(v,evist_advanced_ratio_value(a,level));
+            else if(a->assist_valid)adv_u16(v,evist_advanced_assist_cell_value(a,idx));else val="--";
         }
         adv_row((uint16_t)(42u+row*22u),name,val,idx==a->cursor,a->edit&&idx==a->cursor);
     }
     if(cells==0u)m_text(8u,104u,"NO MODES ON",DIM,BLACK,1u);
-    if(a->assist_dirty)m_text(270u,10u,"EDIT",0xFFE0u,BLACK,1u);
+    if(a->assist_dirty||a->accel_dirty)m_text(270u,10u,"EDIT",0xFFE0u,BLACK,1u);
     adv_status_or_footer(a,a->edit?"UP/DN VALUE  POWER DONE":"POWER SELECT");
 }
 /* DIAG (read-only, page-based layout). Fields without a data source show
@@ -1280,17 +1282,9 @@ static void draw_advanced(const dpc245_app_t *c,const evist_can_router_t *r,uint
         uint8_t top=a->cursor>4u?(uint8_t)(a->cursor-4u):0u;
         if(rows>5u&&top+5u>rows)top=(uint8_t)(rows-5u);
         for(uint8_t row=0u;row<5u&&top+row<rows;++row){
-            uint8_t idx=(uint8_t)(top+row);char name[12]={0},val[8]={0};const char *label=name,*value=val;
-            uint8_t levels=evist_assist_visible_levels(a->assist_level_count);
+            uint8_t idx=(uint8_t)(top+row);char name[8]={0},val[8]={0};const char *label=name,*value=val;
             if(idx==values){label="SAVE";value="";}
             else if(idx==values+1u){label="BACK";value="";}
-            else if(a->accel_mode==EVIST_ACCEL_PER_LEVEL&&idx>=levels){
-                static const char suffix[]=" RATIO%";
-                uint8_t level=(uint8_t)(idx-levels+1u);
-                name[0]='L';name[1]=(char)('0'+level);
-                for(uint8_t k=0u;suffix[k];++k)name[2u+k]=suffix[k];
-                adv_u16(val,evist_advanced_ratio_value(a,level));
-            }
             else if(a->accel_mode==EVIST_ACCEL_PER_LEVEL){
                 name[0]='L';name[1]=(char)('1'+idx);
                 if(a->accel_valid)adv_u16(val,a->accel_values[evist_assist_level_slot(a->assist_level_count,(uint8_t)(idx+1u))]);

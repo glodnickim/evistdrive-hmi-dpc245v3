@@ -2,7 +2,7 @@
 
 This file is generated from the current source tree and is part of the release gate. Every C function definition, including static helpers, interrupt handlers and freestanding runtime functions, is listed here.
 
-- Function definitions: **745**
+- Function definitions: **748**
 - Source files: **53**
 
 ## `platform/dpc245/bxcan_raw.c`
@@ -1590,7 +1590,7 @@ Functions: **5**
 
 Advanced settings state machine and controller-configuration editing.
 
-Functions: **50**
+Functions: **53**
 
 ### `wrap_up`
 
@@ -1661,7 +1661,7 @@ Functions: **50**
 - Linkage: `static`
 - Type: `uint16_t (const uint8_t *, uint8_t)`
 - Responsibility: Internal helper of the advanced_settings module.
-- Direct callers: `accel_key`
+- Direct callers: `ratio_step`
 - Direct callees: —
 
 ### `ratio_limit`
@@ -1670,7 +1670,7 @@ Functions: **50**
 - Linkage: `static`
 - Type: `uint16_t (const uint8_t *)`
 - Responsibility: Internal helper of the advanced_settings module.
-- Direct callers: `accel_key`, `evist_advanced_ratio_available`
+- Direct callers: `evist_advanced_ratio_available`, `ratio_step`
 - Direct callees: —
 
 ### `enter`
@@ -1711,7 +1711,7 @@ Functions: **50**
 
 ### `open_accel`
 
-- Location: `src/advanced_settings.c:99`
+- Location: `src/advanced_settings.c:102`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1720,7 +1720,7 @@ Functions: **50**
 
 ### `evist_advanced_open_page`
 
-- Location: `src/advanced_settings.c:107`
+- Location: `src/advanced_settings.c:110`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, evist_adv_screen_t)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1729,7 +1729,7 @@ Functions: **50**
 
 ### `back_to_menu`
 
-- Location: `src/advanced_settings.c:116`
+- Location: `src/advanced_settings.c:119`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1738,7 +1738,7 @@ Functions: **50**
 
 ### `evist_advanced_abandon`
 
-- Location: `src/advanced_settings.c:134`
+- Location: `src/advanced_settings.c:137`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1747,7 +1747,7 @@ Functions: **50**
 
 ### `commit_preferences`
 
-- Location: `src/advanced_settings.c:156`
+- Location: `src/advanced_settings.c:159`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1756,70 +1756,88 @@ Functions: **50**
 
 ### `evist_advanced_open`
 
-- Location: `src/advanced_settings.c:165`
+- Location: `src/advanced_settings.c:168`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, const evist_preferences_t *, uint8_t)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `dpc245_app_apply_preferences`, `dpc245_app_init`, `open_advanced`
 - Direct callees: `evist_assist_level_count_normalize`, `evist_preferences_defaults`, `evist_ride_defaults`
 
+### `assist_cells_per_mode`
+
+- Location: `src/advanced_settings.c:205`
+- Linkage: `static`
+- Type: `uint8_t (const evist_advanced_t *)`
+- Responsibility: Internal helper of the advanced_settings module.
+- Direct callers: `evist_advanced_assist_cell_column`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cells`
+- Direct callees: `evist_advanced_ratio_available`
+
 ### `evist_advanced_assist_cells`
 
-- Location: `src/advanced_settings.c:202`
+- Location: `src/advanced_settings.c:209`
 - Linkage: `global`
 - Type: `uint8_t (const evist_advanced_t *)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `assist_key`, `draw_adv_assist`, `evist_advanced_row_count`
-- Direct callees: `evist_assist_visible_levels`
+- Direct callees: `assist_cells_per_mode`, `evist_assist_visible_levels`
 
-### `evist_advanced_assist_cell_level`
+### `evist_advanced_assist_cell_column`
 
-- Location: `src/advanced_settings.c:210`
+- Location: `src/advanced_settings.c:217`
 - Linkage: `global`
 - Type: `uint8_t (const evist_advanced_t *, uint8_t)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `assist_key`, `draw_adv_assist`, `evist_advanced_assist_cell_value`
-- Direct callees: `evist_assist_visible_levels`
+- Direct callees: `assist_cells_per_mode`
+
+### `evist_advanced_assist_cell_level`
+
+- Location: `src/advanced_settings.c:221`
+- Linkage: `global`
+- Type: `uint8_t (const evist_advanced_t *, uint8_t)`
+- Responsibility: Public function of the advanced_settings module.
+- Direct callers: `assist_key`, `draw_adv_assist`, `evist_advanced_assist_cell_value`
+- Direct callees: `assist_cells_per_mode`, `evist_assist_visible_levels`
 
 ### `evist_advanced_ratio_available`
 
-- Location: `src/advanced_settings.c:220`
+- Location: `src/advanced_settings.c:232`
 - Linkage: `global`
 - Type: `bool (const evist_advanced_t *)`
 - Responsibility: Public function of the advanced_settings module.
-- Direct callers: `evist_advanced_accel_loaded`, `evist_advanced_row_count`
+- Direct callers: `assist_cells_per_mode`, `evist_advanced_accel_loaded`
 - Direct callees: `evist_assist_level_slot`, `evist_assist_visible_levels`, `ratio_limit`
 
 ### `evist_advanced_ratio_value`
 
-- Location: `src/advanced_settings.c:229`
+- Location: `src/advanced_settings.c:242`
 - Linkage: `global`
 - Type: `uint16_t (const evist_advanced_t *, uint8_t)`
 - Responsibility: Public function of the advanced_settings module.
-- Direct callers: `draw_advanced`
+- Direct callers: `draw_adv_assist`
 - Direct callees: `evist_assist_level_slot`, `evist_assist_visible_levels`
 
 ### `evist_advanced_accel_loaded`
 
-- Location: `src/advanced_settings.c:234`
+- Location: `src/advanced_settings.c:247`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Load operation in the advanced_settings module.
 - Direct callers: `dpc245_ble_app_apply_advanced_cache`, `evist_advanced_on_result`
-- Direct callees: `evist_advanced_ratio_available`, `evist_assist_visible_levels`
+- Direct callees: `evist_advanced_ratio_available`
 
 ### `evist_advanced_row_count`
 
-- Location: `src/advanced_settings.c:239`
+- Location: `src/advanced_settings.c:251`
 - Linkage: `global`
 - Type: `size_t (const evist_advanced_t *)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `accel_key`, `dpc245_ble_app_apply_advanced_cache`, `draw_advanced`, `preference_key`
-- Direct callees: `evist_advanced_assist_cells`, `evist_advanced_ratio_available`, `evist_assist_visible_levels`
+- Direct callees: `evist_advanced_assist_cells`, `evist_assist_visible_levels`
 
 ### `evist_advanced_menu_label`
 
-- Location: `src/advanced_settings.c:264`
+- Location: `src/advanced_settings.c:273`
 - Linkage: `global`
 - Type: `const char *(size_t)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1828,7 +1846,7 @@ Functions: **50**
 
 ### `evist_advanced_screen_title`
 
-- Location: `src/advanced_settings.c:266`
+- Location: `src/advanced_settings.c:275`
 - Linkage: `global`
 - Type: `const char *(evist_adv_screen_t)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1837,7 +1855,7 @@ Functions: **50**
 
 ### `evist_advanced_wheel_diameter_label`
 
-- Location: `src/advanced_settings.c:285`
+- Location: `src/advanced_settings.c:294`
 - Linkage: `global`
 - Type: `const char *(const evist_advanced_t *)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1846,16 +1864,16 @@ Functions: **50**
 
 ### `evist_advanced_assist_cell_value`
 
-- Location: `src/advanced_settings.c:294`
+- Location: `src/advanced_settings.c:303`
 - Linkage: `global`
 - Type: `uint8_t (const evist_advanced_t *, uint8_t)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `draw_adv_assist`
-- Direct callees: `evist_advanced_assist_cell_level`, `evist_assist_column_offset`, `evist_assist_level_slot`
+- Direct callees: `evist_advanced_assist_cell_column`, `evist_advanced_assist_cell_level`, `evist_assist_column_offset`, `evist_assist_level_slot`
 
 ### `wheel_edit`
 
-- Location: `src/advanced_settings.c:303`
+- Location: `src/advanced_settings.c:313`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, bool)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1864,7 +1882,7 @@ Functions: **50**
 
 ### `wheel_save`
 
-- Location: `src/advanced_settings.c:320`
+- Location: `src/advanced_settings.c:330`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Save operation in the advanced_settings module.
@@ -1873,7 +1891,7 @@ Functions: **50**
 
 ### `wheel_key`
 
-- Location: `src/advanced_settings.c:339`
+- Location: `src/advanced_settings.c:349`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, evist_adv_key_t)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1882,7 +1900,7 @@ Functions: **50**
 
 ### `evist_advanced_wheel_target`
 
-- Location: `src/advanced_settings.c:361`
+- Location: `src/advanced_settings.c:371`
 - Linkage: `global`
 - Type: `void (const evist_advanced_t *, evist_wheel_config_t *)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1891,7 +1909,7 @@ Functions: **50**
 
 ### `wheel_load`
 
-- Location: `src/advanced_settings.c:370`
+- Location: `src/advanced_settings.c:380`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, const uint8_t *)`
 - Responsibility: Load operation in the advanced_settings module.
@@ -1900,43 +1918,52 @@ Functions: **50**
 
 ### `assist_save`
 
-- Location: `src/advanced_settings.c:381`
+- Location: `src/advanced_settings.c:394`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Save operation in the advanced_settings module.
 - Direct callers: `assist_key`
-- Direct callees: `copy64`, `evist_assist_prepare_write`, `request`
+- Direct callees: `accel_save`, `copy64`, `evist_assist_prepare_write`, `request`
+
+### `ratio_step`
+
+- Location: `src/advanced_settings.c:409`
+- Linkage: `static`
+- Type: `void (evist_advanced_t *, uint8_t, bool)`
+- Responsibility: Internal helper of the advanced_settings module.
+- Direct callers: `assist_key`
+- Direct callees: `evist_assist_level_slot`, `ratio_at`, `ratio_limit`
 
 ### `assist_key`
 
-- Location: `src/advanced_settings.c:394`
+- Location: `src/advanced_settings.c:422`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, evist_adv_key_t)`
 - Responsibility: Internal helper of the advanced_settings module.
 - Direct callers: `evist_advanced_key`
-- Direct callees: `assist_save`, `back_to_menu`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cells`, `evist_assist_edit_step`, `wrap_down`, `wrap_up`
+- Direct callees: `assist_save`, `back_to_menu`, `evist_advanced_assist_cell_column`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cells`, `evist_assist_edit_step`, `ratio_step`, `wrap_down`, `wrap_up`
 
 ### `accel_save`
 
-- Location: `src/advanced_settings.c:431`
+- Location: `src/advanced_settings.c:463`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *)`
 - Responsibility: Save operation in the advanced_settings module.
-- Direct callers: `accel_key`
+- Direct callers: `accel_key`, `assist_save`, `evist_advanced_on_result`
 - Direct callees: `evist_assist_checksum`, `request`
 
 ### `accel_key`
 
-- Location: `src/advanced_settings.c:448`
+- Location: `src/advanced_settings.c:480`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, evist_adv_key_t)`
 - Responsibility: Internal helper of the advanced_settings module.
 - Direct callers: `evist_advanced_key`
-- Direct callees: `accel_save`, `back_to_menu`, `cycle_u8`, `evist_advanced_row_count`, `evist_assist_level_slot`, `evist_assist_visible_levels`, `ratio_at`, `ratio_limit`, `wrap_down`, `wrap_up`
+- Direct callees: `accel_save`, `back_to_menu`, `cycle_u8`, `evist_advanced_row_count`, `evist_assist_level_slot`, `wrap_down`, `wrap_up`
 
 ### `preference_edit`
 
-- Location: `src/advanced_settings.c:490`
+- Location: `src/advanced_settings.c:507`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, bool)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1945,7 +1972,7 @@ Functions: **50**
 
 ### `preference_key`
 
-- Location: `src/advanced_settings.c:557`
+- Location: `src/advanced_settings.c:574`
 - Linkage: `static`
 - Type: `void (evist_advanced_t *, evist_adv_key_t)`
 - Responsibility: Internal helper of the advanced_settings module.
@@ -1954,7 +1981,7 @@ Functions: **50**
 
 ### `evist_advanced_key`
 
-- Location: `src/advanced_settings.c:589`
+- Location: `src/advanced_settings.c:606`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, evist_adv_key_t)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1963,7 +1990,7 @@ Functions: **50**
 
 ### `evist_advanced_take_request`
 
-- Location: `src/advanced_settings.c:623`
+- Location: `src/advanced_settings.c:640`
 - Linkage: `global`
 - Type: `bool (evist_advanced_t *, evist_adv_request_t *)`
 - Responsibility: Consume-once accessor in the advanced_settings module.
@@ -1972,7 +1999,7 @@ Functions: **50**
 
 ### `evist_advanced_request_failed`
 
-- Location: `src/advanced_settings.c:635`
+- Location: `src/advanced_settings.c:652`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, const char *)`
 - Responsibility: Public function of the advanced_settings module.
@@ -1981,16 +2008,16 @@ Functions: **50**
 
 ### `evist_advanced_on_result`
 
-- Location: `src/advanced_settings.c:642`
+- Location: `src/advanced_settings.c:659`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, evist_txn_kind_t, evist_txn_result_t, const uint8_t *)`
 - Responsibility: Public function of the advanced_settings module.
 - Direct callers: `controller_config_service`
-- Direct callees: `accel_values_from_block`, `copy64`, `evist_advanced_accel_loaded`, `evist_assist_block_valid`, `evist_assist_level_slot`, `evist_assist_visible_levels`, `evist_txn_result_text`, `request`, `wheel_load`
+- Direct callees: `accel_save`, `accel_values_from_block`, `copy64`, `evist_advanced_accel_loaded`, `evist_assist_block_valid`, `evist_assist_level_slot`, `evist_assist_visible_levels`, `evist_txn_result_text`, `request`, `wheel_load`
 
 ### `evist_advanced_take_preferences`
 
-- Location: `src/advanced_settings.c:748`
+- Location: `src/advanced_settings.c:772`
 - Linkage: `global`
 - Type: `bool (evist_advanced_t *, evist_preferences_t *)`
 - Responsibility: Consume-once accessor in the advanced_settings module.
@@ -1999,7 +2026,7 @@ Functions: **50**
 
 ### `evist_advanced_take_light_runtime`
 
-- Location: `src/advanced_settings.c:755`
+- Location: `src/advanced_settings.c:779`
 - Linkage: `global`
 - Type: `bool (evist_advanced_t *, evist_preferences_t *)`
 - Responsibility: Consume-once accessor in the advanced_settings module.
@@ -2008,7 +2035,7 @@ Functions: **50**
 
 ### `evist_advanced_take_exit`
 
-- Location: `src/advanced_settings.c:762`
+- Location: `src/advanced_settings.c:786`
 - Linkage: `global`
 - Type: `bool (evist_advanced_t *)`
 - Responsibility: Consume-once accessor in the advanced_settings module.
@@ -2017,7 +2044,7 @@ Functions: **50**
 
 ### `evist_advanced_set_status`
 
-- Location: `src/advanced_settings.c:769`
+- Location: `src/advanced_settings.c:793`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, const char *)`
 - Responsibility: Setter in the advanced_settings module.
@@ -2026,7 +2053,7 @@ Functions: **50**
 
 ### `evist_advanced_set_ride`
 
-- Location: `src/advanced_settings.c:773`
+- Location: `src/advanced_settings.c:797`
 - Linkage: `global`
 - Type: `void (evist_advanced_t *, const evist_ride_cfg_t *)`
 - Responsibility: Setter in the advanced_settings module.
@@ -2035,7 +2062,7 @@ Functions: **50**
 
 ### `evist_advanced_take_ride`
 
-- Location: `src/advanced_settings.c:779`
+- Location: `src/advanced_settings.c:803`
 - Linkage: `global`
 - Type: `bool (evist_advanced_t *, evist_ride_cfg_t *)`
 - Responsibility: Consume-once accessor in the advanced_settings module.
@@ -2063,7 +2090,7 @@ Functions: **15**
 - Linkage: `global`
 - Type: `uint8_t (uint8_t)`
 - Responsibility: Public function of the assist_profile module.
-- Direct callers: `accel_key`, `draw_advanced`, `evist_advanced_accel_loaded`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cells`, `evist_advanced_on_result`, `evist_advanced_ratio_available`, `evist_advanced_ratio_value`, `evist_advanced_row_count`, `evist_assist_edit_bounds`, `evist_assist_edit_step`, `reconcile_hidden`, `visible_monotonic`
+- Direct callers: `evist_advanced_assist_cell_level`, `evist_advanced_assist_cells`, `evist_advanced_on_result`, `evist_advanced_ratio_available`, `evist_advanced_ratio_value`, `evist_advanced_row_count`, `evist_assist_edit_bounds`, `evist_assist_edit_step`, `reconcile_hidden`, `visible_monotonic`
 - Direct callees: `evist_assist_level_count_normalize`
 
 ### `evist_assist_level_slot`
@@ -2072,7 +2099,7 @@ Functions: **15**
 - Linkage: `global`
 - Type: `uint8_t (uint8_t, uint8_t)`
 - Responsibility: Public function of the assist_profile module.
-- Direct callers: `accel_key`, `draw_advanced`, `evist_advanced_assist_cell_value`, `evist_advanced_on_result`, `evist_advanced_ratio_available`, `evist_advanced_ratio_value`, `evist_assist_edit_step`, `level_value`, `reconcile_hidden`
+- Direct callers: `accel_key`, `draw_advanced`, `evist_advanced_assist_cell_value`, `evist_advanced_on_result`, `evist_advanced_ratio_available`, `evist_advanced_ratio_value`, `evist_assist_edit_step`, `level_value`, `ratio_step`, `reconcile_hidden`
 - Direct callees: `evist_assist_level_count_normalize`
 
 ### `evist_assist_column_offset`
@@ -3616,7 +3643,7 @@ Functions: **29**
 
 ### `requested_chunk_len`
 
-- Location: `src/dpc245_ble_app.c:405`
+- Location: `src/dpc245_ble_app.c:418`
 - Linkage: `static`
 - Type: `uint8_t (const dpc245_ble_frame_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3625,7 +3652,7 @@ Functions: **29**
 
 ### `read_block`
 
-- Location: `src/dpc245_ble_app.c:416`
+- Location: `src/dpc245_ble_app.c:429`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_result_t *, const dpc245_ble_frame_t *, const uint8_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3634,7 +3661,7 @@ Functions: **29**
 
 ### `write_block`
 
-- Location: `src/dpc245_ble_app.c:424`
+- Location: `src/dpc245_ble_app.c:437`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_result_t *, const dpc245_ble_frame_t *, uint8_t *, size_t)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3643,7 +3670,7 @@ Functions: **29**
 
 ### `handle_10`
 
-- Location: `src/dpc245_ble_app.c:436`
+- Location: `src/dpc245_ble_app.c:449`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3652,7 +3679,7 @@ Functions: **29**
 
 ### `handle_a5`
 
-- Location: `src/dpc245_ble_app.c:484`
+- Location: `src/dpc245_ble_app.c:497`
 - Linkage: `static`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, const dpc245_hmi_identity_records_t *, _Bool, dpc245_update_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Internal helper of the dpc245_ble_app module.
@@ -3661,7 +3688,7 @@ Functions: **29**
 
 ### `dpc245_ble_app_init`
 
-- Location: `src/dpc245_ble_app.c:523`
+- Location: `src/dpc245_ble_app.c:536`
 - Linkage: `global`
 - Type: `void (dpc245_ble_app_t *)`
 - Responsibility: Initialization in the dpc245_ble_app module.
@@ -3670,7 +3697,7 @@ Functions: **29**
 
 ### `dpc245_ble_app_handle`
 
-- Location: `src/dpc245_ble_app.c:528`
+- Location: `src/dpc245_ble_app.c:541`
 - Linkage: `global`
 - Type: `_Bool (dpc245_ble_app_t *, const dpc245_ble_frame_t *, dpc245_app_t *, evist_can_router_t *, const dpc245_hmi_identity_records_t *, _Bool, dpc245_update_t *, dpc245_ble_app_result_t *)`
 - Responsibility: Public function of the dpc245_ble_app module.
@@ -3679,7 +3706,7 @@ Functions: **29**
 
 ### `dpc245_ble_app_build_periodic`
 
-- Location: `src/dpc245_ble_app.c:660`
+- Location: `src/dpc245_ble_app.c:673`
 - Linkage: `global`
 - Type: `size_t (uint8_t *, size_t, const dpc245_app_t *, const evist_can_router_t *, _Bool)`
 - Responsibility: Frame or record construction in the dpc245_ble_app module.
@@ -3688,7 +3715,7 @@ Functions: **29**
 
 ### `dpc245_ble_app_take_hmi_event_bits`
 
-- Location: `src/dpc245_ble_app.c:701`
+- Location: `src/dpc245_ble_app.c:714`
 - Linkage: `global`
 - Type: `uint8_t (dpc245_ble_app_t *)`
 - Responsibility: Consume-once accessor in the dpc245_ble_app module.
@@ -6750,11 +6777,11 @@ Functions: **109**
 - Type: `void (const evist_advanced_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.
 - Direct callers: `draw_advanced`
-- Direct callees: `adv_row`, `adv_status_or_footer`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cell_value`, `evist_advanced_assist_cells`, `m_text`
+- Direct callees: `adv_row`, `adv_status_or_footer`, `evist_advanced_assist_cell_column`, `evist_advanced_assist_cell_level`, `evist_advanced_assist_cell_value`, `evist_advanced_assist_cells`, `evist_advanced_ratio_value`, `m_text`
 
 ### `diag_u32`
 
-- Location: `src/ui_dashboard.c:1030`
+- Location: `src/ui_dashboard.c:1032`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, uint32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6763,7 +6790,7 @@ Functions: **109**
 
 ### `diag_i32`
 
-- Location: `src/ui_dashboard.c:1033`
+- Location: `src/ui_dashboard.c:1035`
 - Linkage: `static`
 - Type: `void (uint16_t, const char *, bool, int32_t, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6772,7 +6799,7 @@ Functions: **109**
 
 ### `diag_append`
 
-- Location: `src/ui_dashboard.c:1036`
+- Location: `src/ui_dashboard.c:1038`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6781,7 +6808,7 @@ Functions: **109**
 
 ### `diag_number`
 
-- Location: `src/ui_dashboard.c:1040`
+- Location: `src/ui_dashboard.c:1042`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6790,7 +6817,7 @@ Functions: **109**
 
 ### `diag_elapsed_ms`
 
-- Location: `src/ui_dashboard.c:1046`
+- Location: `src/ui_dashboard.c:1048`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6799,7 +6826,7 @@ Functions: **109**
 
 ### `diag_signed`
 
-- Location: `src/ui_dashboard.c:1050`
+- Location: `src/ui_dashboard.c:1052`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, int16_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6808,7 +6835,7 @@ Functions: **109**
 
 ### `diag_hex_byte`
 
-- Location: `src/ui_dashboard.c:1054`
+- Location: `src/ui_dashboard.c:1056`
 - Linkage: `static`
 - Type: `void (char *, unsigned int *, uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6817,7 +6844,7 @@ Functions: **109**
 
 ### `diag_sources`
 
-- Location: `src/ui_dashboard.c:1058`
+- Location: `src/ui_dashboard.c:1060`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6826,7 +6853,7 @@ Functions: **109**
 
 ### `diag_stage`
 
-- Location: `src/ui_dashboard.c:1066`
+- Location: `src/ui_dashboard.c:1068`
 - Linkage: `static`
 - Type: `void (uint16_t, uint16_t, const char *, uint32_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6835,7 +6862,7 @@ Functions: **109**
 
 ### `ble_reject_text`
 
-- Location: `src/ui_dashboard.c:1071`
+- Location: `src/ui_dashboard.c:1073`
 - Linkage: `static`
 - Type: `const char *(uint8_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6844,7 +6871,7 @@ Functions: **109**
 
 ### `diag_result_text`
 
-- Location: `src/ui_dashboard.c:1082`
+- Location: `src/ui_dashboard.c:1084`
 - Linkage: `static`
 - Type: `const char *(evist_txn_result_t)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6853,7 +6880,7 @@ Functions: **109**
 
 ### `diag_live_source`
 
-- Location: `src/ui_dashboard.c:1091`
+- Location: `src/ui_dashboard.c:1093`
 - Linkage: `static`
 - Type: `void (uint16_t, const dpc245_temp_live_source_t *, bool, int16_t, const char *, const char *, const char *)`
 - Responsibility: Internal helper of the ui_dashboard module.
@@ -6862,7 +6889,7 @@ Functions: **109**
 
 ### `draw_adv_diag`
 
-- Location: `src/ui_dashboard.c:1113`
+- Location: `src/ui_dashboard.c:1115`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint8_t, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
@@ -6871,16 +6898,16 @@ Functions: **109**
 
 ### `draw_advanced`
 
-- Location: `src/ui_dashboard.c:1253`
+- Location: `src/ui_dashboard.c:1255`
 - Linkage: `static`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, uint32_t)`
 - Responsibility: Drawing routine in the ui_dashboard module.
 - Direct callers: `ui_dashboard_draw`
-- Direct callees: `adv_row`, `adv_status_or_footer`, `adv_u16`, `draw_adv_assist`, `draw_adv_diag`, `draw_adv_wheel`, `evist_advanced_menu_label`, `evist_advanced_ratio_value`, `evist_advanced_row_count`, `evist_advanced_screen_title`, `evist_assist_level_slot`, `evist_assist_visible_levels`, `fmt_u32_5`, `footer`, `m_text`, `ride_speed_text`, `title`, `ui_dashboard_temp_limit_text`, `ui_font1_text`
+- Direct callees: `adv_row`, `adv_status_or_footer`, `adv_u16`, `draw_adv_assist`, `draw_adv_diag`, `draw_adv_wheel`, `evist_advanced_menu_label`, `evist_advanced_row_count`, `evist_advanced_screen_title`, `evist_assist_level_slot`, `fmt_u32_5`, `footer`, `m_text`, `ride_speed_text`, `title`, `ui_dashboard_temp_limit_text`, `ui_font1_text`
 
 ### `ui_dashboard_draw`
 
-- Location: `src/ui_dashboard.c:1356`
+- Location: `src/ui_dashboard.c:1350`
 - Linkage: `global`
 - Type: `void (const dpc245_app_t *, const evist_can_router_t *, const dpc245_adc_snapshot_t *, const dpc245_hwinfo_t *, uint8_t, bool, bool, bool, uint32_t, const dpc245_ui_status_t *)`
 - Responsibility: Drawing routine in the ui_dashboard module.

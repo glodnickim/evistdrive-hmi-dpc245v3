@@ -539,10 +539,14 @@ int main(int argc, char **argv) {
             app.advanced.accel_block[11u + 2u * i] = (uint8_t)(ratios[i] >> 8);
         }
     }
-    app.advanced.cursor = 9u;
+    app.advanced.screen = EVIST_ADV_ASSIST;
+    app.advanced.assist_valid = true;
+    app.advanced.working.assist_mode_mask = 0x1Fu;
+    app.advanced.cursor = 2u;
     box_count = 0;
     ui_dashboard_draw(&app, &router, &adc, &hw, 0u, true, true, true, 0u, &status);
-    check_layout("accel_ratio"); dump("accel_ratio");
+    check_layout("assist_ratio"); dump("assist_ratio");
+    app.advanced.screen = EVIST_ADV_ACCEL;
     app.advanced.cursor = 0u;
     app.advanced.accel_mode = EVIST_ACCEL_GLOBAL;
     app.advanced.accel_global = 7u;

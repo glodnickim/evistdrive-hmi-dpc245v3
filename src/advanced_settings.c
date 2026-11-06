@@ -93,6 +93,9 @@ static void open_assist(evist_advanced_t *a) {
     enter(a, EVIST_ADV_ASSIST);
     a->assist_valid = false;
     a->assist_dirty = false;
+    a->accel_valid = false;
+    a->accel_dirty = false;
+    a->ratio_write_pending = false;
     request(a, EVIST_ADV_REQ_READ_ASSIST, "READING");
 }
 
@@ -199,20 +202,29 @@ void evist_advanced_open(evist_advanced_t *a, const evist_preferences_t *p, uint
     }
 }
 
+static uint8_t assist_cells_per_mode(const evist_advanced_t *a) {
+    return evist_advanced_ratio_available(a) ? 3u : 2u;
+}
+
 uint8_t evist_advanced_assist_cells(const evist_advanced_t *a) {
     if (!a) return 0u;
-    uint8_t count = 0u;
+    uint8_t count = 0u, per_mode = assist_cells_per_mode(a);
     for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level)
-        if (a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) count += 2u;
+        if (a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) count = (uint8_t)(count + per_mode);
     return count;
+}
+
+uint8_t evist_advanced_assist_cell_column(const evist_advanced_t *a, uint8_t cell) {
+    return (uint8_t)(cell % assist_cells_per_mode(a));
 }
 
 uint8_t evist_advanced_assist_cell_level(const evist_advanced_t *a, uint8_t cell) {
     if (!a) return 0u;
+    uint8_t per_mode = assist_cells_per_mode(a);
     for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level) {
         if ((a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) == 0u) continue;
-        if (cell < 2u) return level;
-        cell -= 2u;
+        if (cell < per_mode) return level;
+        cell = (uint8_t)(cell - per_mode);
     }
     return 0u;
 }
@@ -221,7 +233,8 @@ bool evist_advanced_ratio_available(const evist_advanced_t *a) {
     if (!a || a->accel_mode != EVIST_ACCEL_PER_LEVEL || !a->accel_valid) return false;
     uint16_t limit = ratio_limit(a->accel_block);
     for (uint8_t level = 1u; level <= evist_assist_visible_levels(a->assist_level_count); ++level)
-        if (ratio_at(a->accel_block, evist_assist_level_slot(a->assist_level_count, level)) > limit)
+        if ((a->working.assist_mode_mask & (uint8_t)(1u << (level - 1u))) != 0u &&
+            ratio_at(a->accel_block, evist_assist_level_slot(a->assist_level_count, level)) > limit)
             return false;
     return true;
 }
@@ -232,8 +245,7 @@ uint16_t evist_advanced_ratio_value(const evist_advanced_t *a, uint8_t level) {
 }
 
 void evist_advanced_accel_loaded(evist_advanced_t *a) {
-    if (a && evist_advanced_ratio_available(a) &&
-        a->cursor >= evist_assist_visible_levels(a->assist_level_count)) a->cursor = 0u;
+    if (a && a->screen == EVIST_ADV_ASSIST && evist_advanced_ratio_available(a)) a->cursor = 0u;
 }
 
 size_t evist_advanced_row_count(const evist_advanced_t *a) {
@@ -242,11 +254,8 @@ size_t evist_advanced_row_count(const evist_advanced_t *a) {
     case EVIST_ADV_MENU:       return MENU_ITEMS;
     case EVIST_ADV_WHEEL:      return EVIST_WHEEL_ROWS;
     case EVIST_ADV_ASSIST:     return (size_t)evist_advanced_assist_cells(a) + 2u;
-    case EVIST_ADV_ACCEL: {
-        size_t levels = a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
-                        evist_assist_visible_levels(a->assist_level_count) : 1u;
-        return (evist_advanced_ratio_available(a) ? levels * 2u : levels) + 2u;
-    }
+    case EVIST_ADV_ACCEL:      return (a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
+                                        evist_assist_visible_levels(a->assist_level_count) : 1u) + 2u;
     case EVIST_ADV_GRAPH:      return 3u;
     case EVIST_ADV_FIRMWARE:   return 3u;
     case EVIST_ADV_BATTERY:    return 6u;
@@ -294,7 +303,8 @@ const char *evist_advanced_wheel_diameter_label(const evist_advanced_t *a) {
 uint8_t evist_advanced_assist_cell_value(const evist_advanced_t *a, uint8_t cell) {
     uint8_t level = evist_advanced_assist_cell_level(a, cell);
     if (level == 0u) return 0u;
-    evist_assist_column_t column = (cell & 1u) ? EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
+    evist_assist_column_t column = evist_advanced_assist_cell_column(a, cell) == 1u ?
+                                   EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
     return a->assist_block[evist_assist_column_offset(column) + evist_assist_level_slot(a->assist_level_count, level)];
 }
 
@@ -378,9 +388,13 @@ static void wheel_load(evist_advanced_t *a, const uint8_t data[64]) {
 
 /* ---- ASSIST page -------------------------------------------------------- */
 
+static void accel_save(evist_advanced_t *a);
+
+/* POWER% and SPEED% live in 0x6011, RATIO% in P0: two writes, one after the other. */
 static void assist_save(evist_advanced_t *a) {
     if (!a->assist_valid) { a->status = "READ FIRST"; return; }
-    if (!a->assist_dirty) { a->status = "NO CHANGES"; return; }
+    if (!a->assist_dirty && !a->accel_dirty) { a->status = "NO CHANGES"; return; }
+    if (!a->assist_dirty) { accel_save(a); return; }
     uint8_t candidate[64];
     copy64(candidate, a->assist_block);
     if (!evist_assist_prepare_write(candidate, a->committed.firmware_profile, a->assist_level_count)) {
@@ -388,12 +402,28 @@ static void assist_save(evist_advanced_t *a) {
         return;
     }
     copy64(a->assist_block, candidate);
+    a->ratio_write_pending = a->accel_dirty;
     request(a, EVIST_ADV_REQ_WRITE_ASSIST, "WRITING");
+}
+
+static void ratio_step(evist_advanced_t *a, uint8_t level, bool up) {
+    uint8_t slot = evist_assist_level_slot(a->assist_level_count, level);
+    uint16_t old = ratio_at(a->accel_block, slot), limit = ratio_limit(a->accel_block), ratio;
+    /* A value that is not a multiple of the step still reaches both ends. */
+    if (up) ratio = limit - old < EVIST_RATIO_STEP ? limit : (uint16_t)(old + EVIST_RATIO_STEP);
+    else ratio = old < EVIST_RATIO_STEP ? 0u : (uint16_t)(old - EVIST_RATIO_STEP);
+    if (ratio != old) {
+        a->accel_block[EVIST_RATIO_OFF + 2u * slot] = (uint8_t)(ratio & 0xFFu);
+        a->accel_block[EVIST_RATIO_OFF + 2u * slot + 1u] = (uint8_t)(ratio >> 8);
+        a->accel_dirty = true;
+    }
 }
 
 static void assist_key(evist_advanced_t *a, evist_adv_key_t k) {
     if (a->active_request == EVIST_ADV_REQ_WRITE_ASSIST ||
-        a->request == EVIST_ADV_REQ_WRITE_ASSIST) return;
+        a->request == EVIST_ADV_REQ_WRITE_ASSIST ||
+        a->active_request == EVIST_ADV_REQ_WRITE_ACCEL_P0 ||
+        a->request == EVIST_ADV_REQ_WRITE_ACCEL_P0) return;
     uint8_t cells = evist_advanced_assist_cells(a);
     uint8_t rows = (uint8_t)(cells + 2u), save = cells, back = (uint8_t)(cells + 1u);
     if (a->edit) {
@@ -404,7 +434,9 @@ static void assist_key(evist_advanced_t *a, evist_adv_key_t k) {
         }
         uint8_t level = evist_advanced_assist_cell_level(a, a->cursor);
         if (level == 0u) return;
-        evist_assist_column_t column = (a->cursor & 1u) ? EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
+        uint8_t cell_column = evist_advanced_assist_cell_column(a, a->cursor);
+        if (cell_column == 2u) { ratio_step(a, level, k == EVIST_ADV_KEY_UP); return; }
+        evist_assist_column_t column = cell_column == 1u ? EVIST_ASSIST_COLUMN_SPEED : EVIST_ASSIST_COLUMN_POWER;
         if (evist_assist_edit_step(a->assist_block, a->committed.firmware_profile, a->assist_level_count,
                                    column, level, k == EVIST_ADV_KEY_UP))
             a->assist_dirty = true;
@@ -454,21 +486,6 @@ static void accel_key(evist_advanced_t *a, evist_adv_key_t k) {
     uint8_t save = (uint8_t)(rows - 2u), back = (uint8_t)(rows - 1u);
     if (a->edit) {
         if (k == EVIST_ADV_KEY_POWER) { a->edit = false; return; }
-        uint8_t levels = evist_assist_visible_levels(a->assist_level_count);
-        if (a->accel_mode == EVIST_ACCEL_PER_LEVEL && a->cursor >= levels) {
-            uint8_t slot = evist_assist_level_slot(a->assist_level_count, (uint8_t)(a->cursor - levels + 1u));
-            uint16_t old = ratio_at(a->accel_block, slot), limit = ratio_limit(a->accel_block), ratio;
-            /* A value that is not a multiple of the step still reaches both ends. */
-            if (k == EVIST_ADV_KEY_UP)
-                ratio = limit - old < EVIST_RATIO_STEP ? limit : (uint16_t)(old + EVIST_RATIO_STEP);
-            else ratio = old < EVIST_RATIO_STEP ? 0u : (uint16_t)(old - EVIST_RATIO_STEP);
-            if (ratio != old) {
-                a->accel_block[EVIST_RATIO_OFF + 2u * slot] = (uint8_t)(ratio & 0xFFu);
-                a->accel_block[EVIST_RATIO_OFF + 2u * slot + 1u] = (uint8_t)(ratio >> 8);
-                a->accel_dirty = true;
-            }
-            return;
-        }
         uint8_t *v = a->accel_mode == EVIST_ACCEL_GLOBAL ? &a->accel_global :
             &a->accel_values[evist_assist_level_slot(a->assist_level_count, (uint8_t)(a->cursor + 1u))];
         uint8_t old = *v;
@@ -675,6 +692,7 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
             a->assist_valid = true;
             a->assist_dirty = false;
             a->status = "";
+            if (!a->accel_valid) request(a, EVIST_ADV_REQ_DISCOVER_ACCEL, "");
         } else {
             a->status = ok ? "6011 BLOCK INVALID" : evist_txn_result_text(result);
         }
@@ -683,6 +701,8 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
         if (a->screen != EVIST_ADV_ASSIST) return;
         if (ok) { copy64(a->assist_block, data); copy64(a->assist_committed, data); a->assist_dirty = false; }
         a->status = evist_txn_result_text(result);
+        if (ok && a->ratio_write_pending) accel_save(a);
+        a->ratio_write_pending = false;
         return;
     case EVIST_TXN_DISCOVER_ACCEL:
         if (result != EVIST_TXN_OK && result != EVIST_TXN_NO_READBACK) {
@@ -690,6 +710,8 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
             return;
         }
         a->accel_mode = result == EVIST_TXN_OK ? EVIST_ACCEL_PER_LEVEL : EVIST_ACCEL_GLOBAL;
+        if (a->screen == EVIST_ADV_ASSIST && !a->accel_valid && a->request == EVIST_ADV_REQ_NONE &&
+            a->accel_mode == EVIST_ACCEL_PER_LEVEL) { request(a, EVIST_ADV_REQ_READ_ACCEL_P0, ""); return; }
         if (a->screen == EVIST_ADV_ACCEL && a->accel_valid) { a->status = ""; return; }
         if (a->screen == EVIST_ADV_ACCEL && !a->accel_valid && !a->accel_dirty)
             request(a, a->accel_mode == EVIST_ACCEL_PER_LEVEL ?
@@ -697,9 +719,11 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
         return;
     case EVIST_TXN_READ_ACCEL_P0:
     case EVIST_TXN_READ_ACCEL_P2:
-        if (a->screen != EVIST_ADV_ACCEL) return;
+        if (a->screen != EVIST_ADV_ACCEL && a->screen != EVIST_ADV_ASSIST) return;
+        /* On ASSIST the ratio rows move every row, so they wait for a page without edits. */
         if (a->accel_dirty || a->edit || a->request == EVIST_ADV_REQ_WRITE_ACCEL_P0 ||
-            a->request == EVIST_ADV_REQ_WRITE_ACCEL_P2) {
+            a->request == EVIST_ADV_REQ_WRITE_ACCEL_P2 ||
+            (a->screen == EVIST_ADV_ASSIST && (a->assist_dirty || a->request == EVIST_ADV_REQ_WRITE_ASSIST))) {
             if (a->request == EVIST_ADV_REQ_NONE) a->status = "";
             return;
         }
@@ -731,7 +755,7 @@ void evist_advanced_on_result(evist_advanced_t *a, evist_txn_kind_t kind,
         return;
     case EVIST_TXN_WRITE_APP_P0:
     case EVIST_TXN_WRITE_APP_P2:
-        if (a->screen != EVIST_ADV_ACCEL) return;
+        if (a->screen != EVIST_ADV_ACCEL && a->screen != EVIST_ADV_ASSIST) return;
         if (ok) {
             copy64(a->accel_block, data);
             copy64(a->accel_committed, data);
