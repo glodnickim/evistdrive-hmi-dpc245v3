@@ -16,8 +16,6 @@
 
 #define BLACK 0x0000u
 static uint16_t g_white=0xFFFFu;
-static uint16_t g_dim=0x7BEFu;
-static uint16_t g_hi=0xBDF7u;
 static bool g_menu_screen;
 /* Dashboard palette. */
 #define DASH_BG    0x0000u
@@ -35,7 +33,6 @@ static const uint16_t mode_frame_colours[6] = {
 #define WHITE g_white
 /* Labels are white like values. */
 #define DIM   g_white
-#define HI    g_hi
 #define MENU_SEL 0x07E0u  /* selected row (green), shared by all menus */
 
 /* Menu and info text at its real size: same arguments as the 5x7
@@ -90,8 +87,8 @@ static void clear(void){ dpc245_lcd_fill(BLACK); }
 static void title(const char *s){ m_text(6,4,s,WHITE,BLACK,2); }
 static void apply_theme(const dpc245_app_t *c){
     uint8_t t=c?dpc245_theme(&c->runtime.settings):0u;
-    if(t==DPC245_THEME_YELLOW){g_white=0xFFE0u;g_dim=0xFD20u;g_hi=0x8410u;}
-    else{g_white=0xFFFFu;g_dim=0x7BEFu;g_hi=0xBDF7u;}
+    if(t==DPC245_THEME_YELLOW){g_white=0xFFE0u;}
+    else{g_white=0xFFFFu;}
 }
 
 static void splash_emit(void *ctx,uint16_t pixel,uint8_t count){
@@ -103,7 +100,7 @@ static void splash_emit(void *ctx,uint16_t pixel,uint8_t count){
  * text splash only if the built-in asset is ever malformed. */
 void ui_boot_splash_draw(void){
     g_menu_screen=false;
-    g_white=0xFFFFu;g_dim=0x7BEFu;g_hi=0xBDF7u;
+    g_white=0xFFFFu;
     dpc245_lcd_set_window(0u,0u,(uint16_t)(DPC245_LCD_WIDTH-1u),(uint16_t)(DPC245_LCD_HEIGHT-1u));
     if(boot_splash_emit_all(splash_emit,0))return;
     clear();
