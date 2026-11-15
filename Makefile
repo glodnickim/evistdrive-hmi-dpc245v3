@@ -37,7 +37,7 @@ HOST_SANITIZE := -fsanitize=address,undefined -fno-sanitize-recover=all
 ARM_COMMON := --target=arm-none-eabi -mcpu=cortex-m4 -mthumb -std=c11 -ffreestanding \
  -fno-builtin -fdata-sections -ffunction-sections -Wall -Wextra -Werror \
  -Wframe-larger-than=512 -ffile-prefix-map=$(CURDIR)=. $(INCLUDES) \
- -DEVIST_BUILD_GIT=\"$(GIT_ID)\" $(EXTRA_DEFS)
+ -DEVIST_BUILD_GIT=\"$(GIT_ID)\" $(BOARD_DEFS) $(EXTRA_DEFS)
 # Optional per-build feature overrides, e.g. EXTRA_DEFS=-DEVIST_ENABLE_PERSISTENCE=0 (BRINGUP: no SPI writes).
 EXTRA_DEFS ?=
 LINK_COMMON := -nostdlib -Wl,--gc-sections -Wl,-T,platform/dpc245/dpc245.ld

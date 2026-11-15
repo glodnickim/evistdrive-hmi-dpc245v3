@@ -6,6 +6,7 @@
 #include "dpc245_buttons.h"
 #include "dpc245_hwinfo.h"
 #include "dpc245_recovery.h"
+#include "dpc245_spi_mem.h"
 #include "minifont.h"
 #include "st7789_8080.h"
 
@@ -82,6 +83,16 @@ static void draw_static(const dpc245_probe_boot_t *boot, const dpc245_hwinfo_t *
             boot->clock_pll && !boot->clock_kept ? PROBE_OK : PROBE_BAD, PROBE_BG, 1u);
     row_label(2u, "FLASH KIB");  row_u32(2u, hw->flash_kib);
     row_label(3u, "SRAM KIB");   row_u32(3u, hw->sram_kib);
+    /* External settings memory id (read-only 0x9F). Confirms the SPI NOR part
+     * on this board; a missing/absent memory reads NONE, never a fake id. */
+    ui_text(190u, PROBE_ROW_Y(3u), "JEDEC", PROBE_DIM, PROBE_BG, 1u);
+    if (hw->spi_probe_valid) {
+        ui_hex8(228u, PROBE_ROW_Y(3u), hw->spi_jedec[0], PROBE_OK, PROBE_BG, 1u);
+        ui_hex8(244u, PROBE_ROW_Y(3u), hw->spi_jedec[1], PROBE_OK, PROBE_BG, 1u);
+        ui_hex8(260u, PROBE_ROW_Y(3u), hw->spi_jedec[2], PROBE_OK, PROBE_BG, 1u);
+    } else {
+        ui_text(228u, PROBE_ROW_Y(3u), "NONE", PROBE_BAD, PROBE_BG, 1u);
+    }
     row_label(4u, "DBGID");      row_hex(4u, hw->dbg_idcode, 8u);
     row_label(5u, "RESET FLAGS"); row_hex(5u, hw->reset_flags, 8u);
     ui_text(PROBE_VALUE_X + 80u, PROBE_ROW_Y(5u), "CFG0", PROBE_DIM, PROBE_BG, 1u);
@@ -126,6 +137,10 @@ void dpc245_probe_run(dpc245_probe_boot_t *boot, dpc245_millis_fn millis,
     static dpc245_hwinfo_t hw;
     static dpc245_adc_snapshot_t adc;
     dpc245_hwinfo_read(&hw);
+    /* Read the SPI NOR id here (not in dpc245_hwinfo_read, which also runs on
+     * the product path where SPI is already initialized). Read-only and
+     * timeout-bounded, so an absent or dead bus just reports NONE. */
+    hw.spi_probe_valid = dpc245_spi_mem_init() && dpc245_spi_mem_read_jedec_id(hw.spi_jedec);
     const bool adc_ok = dpc245_adc_init();
 
     dpc245_lcd_init(delay_ms);

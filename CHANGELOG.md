@@ -2,6 +2,7 @@
 
 ## 10.31
 
+- **New display target: DPC245 V2.** The same firmware and features as on the V3 display (screen, keys, CAN, riding, settings persistence); the two differ only in low-level hardware handling. Core functions are verified on real V2 hardware. Settings persistence is enabled (the on-device SPI memory was confirmed identical to V3) but has not yet been re-confirmed to survive a full power cycle on this build. **BLE to the phone app is not yet tested on V2** — the product runs with phone BLE inactive by design; wired CAN flashing and operation work as on V3.
 - The assist ratio moved from BIKE → ACCEL to BIKE → ASSIST LEVELS: each mode now has `RATIO%` as a third value next to `POWER%` and `SPEED%`.
 - One SAVE writes both controller blocks in turn; a failed write stays visible and SAVE repeats only what was not written.
 - A phone change of acceleration during an unsaved ratio edit is kept by SAVE.
