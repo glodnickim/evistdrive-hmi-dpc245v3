@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install toolchain
         run: sudo apt-get update && sudo apt-get install -y clang lld llvm make python3 git binutils
+      - name: Generate function reference with CI clang
+        run: python3 tools/generate_function_reference.py
       - name: Check firmware and tests
         run: make check
       - name: Render screens
